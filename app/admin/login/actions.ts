@@ -29,11 +29,12 @@ export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?
       if (createError) {
         if (createError.message.includes('already been registered')) {
           const { data: { users: retryUsers } } = await supabaseAdmin.auth.admin.listUsers();
-          user = retryUsers.find(u => u.email?.toLowerCase() === email.toLowerCase()) || null;
+          user = retryUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
         } else {
           throw createError;
         }
       } else {
+        if (!newUser) throw new Error('Création admin échouée: utilisateur manquant.');
         user = newUser;
       }
     }

@@ -79,7 +79,14 @@ export async function POST(request: Request) {
   const stripe = new Stripe(secret, { typescript: true });
   const base = appBaseUrl();
 
-  const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+  const line_items: Array<{
+    quantity: number;
+    price_data: {
+      currency: 'eur';
+      unit_amount: number;
+      product_data: { name: string };
+    };
+  }> = [];
   for (const row of items) {
     const snap = row.product_snapshot as { name?: string } | null;
     const name = (snap?.name || 'Création Atelier Bianco').slice(0, 120);
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
   const customerEmail =
     (order.shipping_address as { email?: string } | null)?.email || undefined;
 
-  let session: Stripe.Checkout.Session;
+  let session: { id: string; url: string | null };
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',

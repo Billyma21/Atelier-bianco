@@ -14,6 +14,7 @@ function SuiviForm() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
+    id?: string;
     status: string;
     tracking_number: string | null;
     tracking_carrier: string | null;

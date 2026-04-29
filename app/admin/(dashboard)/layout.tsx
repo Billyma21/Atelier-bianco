@@ -93,7 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       // 3. Check database profile with retries
-      let profile = null;
+      let profile: { role?: string } | null = null;
       const maxAttempts = 5;
       for (let i = 0; i < maxAttempts; i++) {
         const currentAttempt = i + 1;

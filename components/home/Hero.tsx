@@ -60,8 +60,8 @@ export default function Hero({ content }: { content?: any }) {
           className="text-left py-16 md:py-0"
         >
           <motion.span 
-            initial={{ opacity: 0, tracking: '1em' }}
-            animate={{ opacity: 1, tracking: '0.4em' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 1.5 }}
             className="text-[10px] uppercase text-brand-gold mb-12 block font-black"
           >

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useToast } from '@/store/useToast';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get('email') || '';
   
@@ -172,5 +172,13 @@ export default function RegisterPage() {
       </div>
       <Footer />
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-brand-cream pt-40 text-center font-serif">Chargement…</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

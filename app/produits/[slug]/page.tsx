@@ -149,7 +149,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then((result: any) => {
+      const user = result.data.user;
       if (user) {
         setUser(user);
         setReviewForm(prev => ({ ...prev, name: user.user_metadata?.full_name || user.email?.split('@')[0] || '' }));

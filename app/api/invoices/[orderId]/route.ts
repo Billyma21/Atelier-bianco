@@ -36,8 +36,9 @@ export async function GET(
 
   const items = order.order_items || [];
   const buffer = await renderOrderInvoiceBuffer(order, items);
+  const bytes = new Uint8Array(buffer);
 
-  return new NextResponse(buffer, {
+  return new NextResponse(bytes, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',

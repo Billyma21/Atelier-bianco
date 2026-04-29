@@ -74,8 +74,15 @@ function InvoiceDocument({ order, items }: { order: Record<string, unknown>; ite
   );
 }
 
-export async function renderOrderInvoiceBuffer(order: Record<string, unknown>, items: any[]) {
+export async function renderOrderInvoiceBuffer(
+  order: Record<string, unknown>,
+  items: any[]
+): Promise<Buffer> {
   const instance = pdf(<InvoiceDocument order={order} items={items} />);
   const out = await instance.toBuffer();
-  return Buffer.isBuffer(out) ? out : Buffer.from(out);
+  if (Buffer.isBuffer(out)) return out;
+  if (out instanceof Uint8Array) return Buffer.from(out);
+
+  const arrayBuffer = await new Response(out as unknown as ReadableStream).arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
