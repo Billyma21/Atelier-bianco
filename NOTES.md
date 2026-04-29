@@ -4,7 +4,7 @@
 
 - **Node.js** 20 ou supérieur (LTS recommandé).
 - Un compte **Supabase** (projet créé).
-- Comptes **Stripe** et **Resend** si vous testez paiement et emails réels.
+- Compte **Stripe** si vous activez les paiements.
 
 ## Configuration des variables
 
@@ -16,9 +16,7 @@
 4. Pour **créer une commande** et **Stripe Checkout** côté serveur, ajoutez aussi :
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` (webhook pointant vers votre URL déployée ou Stripe CLI en local).
-5. Pour les **emails** après paiement (webhook) :
-   - `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-6. Alignez **`APP_URL`** et **`NEXT_PUBLIC_APP_URL`** sur l’URL réelle du site en production (ex. `https://www.atelier-bianco.com`).
+5. Alignez **`APP_URL`** et **`NEXT_PUBLIC_APP_URL`** sur l’URL réelle du site en production (ex. `https://www.atelier-bianco.com`).
 
 ## Commandes
 
@@ -88,5 +86,5 @@ Autres scripts : `npm run build`, `npm run start`, `npm run lint`.
 ## Sécurité (rappel)
 
 - **Service role Supabase** = accès total à la base : réservé au serveur.
-- **Clés Stripe secrètes** et **Resend** : serveur uniquement.
+- **Clés Stripe secrètes** : serveur uniquement.
 - En cas de fuite d’une clé, **révoquez / régénérez** dans les tableaux de bord respectifs.

@@ -1,6 +1,6 @@
 # Atelier Bianco
 
-Maison de parfumerie de niche — **vitrine e-commerce** bilingue (FR / IT), catalogue, fiches produit, panier, checkout **Stripe**, commandes, espace **admin** (produits, collections, marketing, commandes), contenu éditable (Supabase), emails transactionnels (**Resend**).
+Maison de parfumerie de niche — **vitrine e-commerce** bilingue (FR / IT), catalogue, fiches produit, panier, checkout **Stripe**, commandes, espace **admin** (produits, collections, marketing, commandes), contenu éditable (Supabase).
 
 ## Stack technique
 

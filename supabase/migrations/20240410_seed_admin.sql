@@ -39,8 +39,7 @@ INSERT INTO site_settings (key, value) VALUES
   "supabase_service_role": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxYXpobXV2bXRnZnNnZ2R0dHpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTc3NjcwMywiZXhwIjoyMDkxMzUyNzAzfQ.dcbjIEPQx9Xwdh0peDCmSE4Yw14WAmVKyyhov14dnM0",
   "stripe_public_key": "pk_test_51TKawYCOwRlqHDT5o7PowdvZBpYwxDbnbXozNCDsakl1DJGWWSEmgQnYWCilU39DiV70UQZ2HHu8Jeck5htXmRsB00U1xJC9Jn",
   "stripe_secret_key": "sk_test_51TKawYCOwRlqHDT5xih00kLmXl4cyxFAvgvZe8085ooiGWmRG09iAesHibRBE36crNLbIbbC5nqyEnPldW3dlKEY00dNJlEyNmsk_test_51TKawYCOwRlqHDT5xih00kLmXl4cyxFAvgvZe8085ooiGWmRG09iAesHibRBE36crNLbIbbC5nqyEnPldW3dlKEY00dNJlEyNm",
-  "stripe_webhook_secret": "",
-  "resend_api_key": "re_WQJmLbCt_2HxAeids5BBKMNSHpbkiXcDL"
+  "stripe_webhook_secret": ""
 }')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 

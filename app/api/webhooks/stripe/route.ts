@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
-import { Resend } from 'resend';
 
 export const runtime = 'nodejs';
 
@@ -18,22 +17,6 @@ async function markEventProcessed(eventId: string, eventType: string): Promise<b
   if (error?.code === '23505') return false;
   if (error) throw new Error(error.message);
   return true;
-}
-
-async function sendPaymentReceivedEmail(to: string, orderId: string, amount: string) {
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return;
-  const from = process.env.RESEND_FROM_EMAIL || 'Atelier Bianco <onboarding@resend.dev>';
-  const resend = new Resend(key);
-  await resend.emails.send({
-    from,
-    to,
-    subject: 'Atelier Bianco — Paiement confirmé',
-    html: `<p style="font-family:Georgia,serif">Merci pour votre commande.</p>
-      <p style="font-family:Georgia,serif">Référence : <strong>${orderId.slice(0, 8)}</strong></p>
-      <p style="font-family:Georgia,serif">Montant : ${amount}</p>
-      <p style="font-family:Georgia,serif;color:#666;font-size:13px">Notre atelier prépare votre envoi avec le plus grand soin.</p>`,
-  });
 }
 
 export async function POST(request: Request) {
@@ -111,21 +94,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: updError.message }, { status: 500 });
       }
 
-      const { data: orderRow } = await admin
-        .from('orders')
-        .select('shipping_address, total')
-        .eq('id', orderId)
-        .single();
-
-      const email =
-        session.customer_details?.email ||
-        (orderRow?.shipping_address as { email?: string } | null)?.email;
-      if (email && orderRow?.total != null) {
-        const amount = `${Number(orderRow.total).toFixed(2)} €`;
-        await sendPaymentReceivedEmail(email, orderId, amount).catch((err) =>
-          console.error('[stripe webhook] resend', err)
-        );
-      }
     }
 
     if (event.type === 'checkout.session.expired') {
