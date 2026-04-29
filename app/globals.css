@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+
+  --color-brand-black: #0A0A0A;
+  --color-brand-cream: #F8F5F0;
+  --color-brand-gold: #C9A96E;
+  --color-brand-gold-dark: #A68B5B;
+
+  --animate-fade-in: fade-in 1s ease-out;
+  --animate-slide-up: slide-up 0.8s ease-out;
+  --animate-spin-slow: spin 3s linear infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+.luxury-button {
+  @apply relative overflow-hidden px-8 py-3 bg-brand-black text-brand-cream font-sans tracking-widest uppercase text-xs transition-all duration-500 hover:bg-brand-gold;
+}
+
+.luxury-input {
+  @apply w-full bg-transparent border-b border-brand-black/20 py-2 focus:border-brand-gold outline-none transition-colors duration-300 font-sans text-sm;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full hover:bg-brand-gold transition-colors;
+}
+
+.step-active {
+  @apply bg-brand-black text-white shadow-lg shadow-black/10;
+}
+
+.step-inactive {
+  @apply bg-gray-100 text-gray-400;
+}

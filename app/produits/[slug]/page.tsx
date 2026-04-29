@@ -1,0 +1,564 @@
+'use client';
+
+import React, { useState, useEffect, use, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { createClient } from '@/lib/supabase';
+import { useToast } from '@/store/useToast';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import ProductGallery from '@/components/product/ProductGallery';
+import { motion, AnimatePresence } from 'motion/react';
+
+const OlfactoryProfile = dynamic(() => import('@/components/product/OlfactoryProfile'), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-8 py-16">
+      <div className="mx-auto h-40 max-w-2xl animate-pulse rounded-3xl bg-brand-black/5" />
+      <div className="mx-auto h-32 max-w-xl animate-pulse rounded-2xl bg-brand-black/5" />
+    </div>
+  ),
+});
+import Image from 'next/image';
+import { 
+  ShoppingBag, 
+  Heart, 
+  Truck, 
+  RefreshCw, 
+  ShieldCheck, 
+  ChevronRight,
+  Plus,
+  Minus,
+  Star,
+  Share2,
+  CheckCircle2,
+  Send,
+  Loader2,
+  MessageSquare
+} from 'lucide-react';
+import Link from 'next/link';
+import { formatPrice, cn } from '@/lib/utils';
+import { mapVisualsByKind } from '@/lib/olfactory-visuals';
+import { useCart } from '@/store/useCart';
+import { useLanguage } from '@/context/LanguageContext';
+
+export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
+  const { language, t } = useLanguage();
+  const [product, setProduct] = useState<any>(null);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const { addItem } = useCart();
+  const supabase = createClient();
+
+  const fetchReviews = React.useCallback(async (productId: string) => {
+    setLoadingReviews(true);
+    const { data } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false });
+    if (data) setReviews(data);
+    setLoadingReviews(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select(
+            `
+            *,
+            product_images(*),
+            product_variants(*),
+            olfactory_notes(*),
+            product_olfactory_visuals(*)
+          `
+          )
+          .eq('slug', resolvedParams?.slug)
+          .single();
+
+        if (data) {
+          setProduct(data);
+          if (data.product_variants && data.product_variants.length > 0) {
+            const sortedVariants = [...data.product_variants].sort((a, b) => a.size_ml - b.size_ml);
+            setSelectedVariant(sortedVariants[0]);
+          }
+          fetchReviews(data.id);
+        } else {
+          console.warn('Product not found in DB for slug:', resolvedParams?.slug);
+          // Check if it's a mock product they expect
+          if (resolvedParams?.slug === 'mure-iris' || resolvedParams?.slug === 'bois-ebene') {
+             const fallback = getMockProduct(resolvedParams?.slug);
+             setProduct(fallback);
+             setSelectedVariant(fallback.product_variants[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [resolvedParams?.slug, supabase, fetchReviews]);
+
+  // Helper for mock data
+  const getMockProduct = (slug: string) => {
+    const mocks: Record<string, any> = {
+      'mure-iris': {
+          id: 'mock-p1',
+          name: 'Mûre Iris',
+          slug: 'mure-iris',
+          family: 'Floral Fruité Poudré',
+          description: 'Une rencontre poétique entre la gourmandise sauvage de la mûre et l\'élégance poudrée de l\'iris de Florence.',
+          long_description: 'Mûre Iris est une fragrance de contrastes...',
+          story: 'Inspiré par les souvenirs d\'enfance...',
+          olfactory_notes: [
+            { type: 'head', name: 'Mûre Sauvage', image_url: '' },
+            { type: 'heart', name: 'Iris de Florence', image_url: '' },
+            { type: 'base', name: 'Musc Blanc', image_url: '' },
+          ],
+          product_images: [{ url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1000&auto=format&fit=crop', is_primary: true }],
+          product_variants: [{ id: 'mock-v1', size_ml: 50, price: 125, stock: 10 }]
+      },
+      'bois-ebene': {
+          id: 'mock-p2',
+          name: 'Bois d\'Ébène',
+          slug: 'bois-ebene',
+          family: 'Boisé Intense',
+          description: 'Un hommage à la profondeur mystique de l\'ébène.',
+          product_images: [{ url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000&auto=format&fit=crop', is_primary: true }],
+          product_variants: [{ id: 'mock-v2', size_ml: 100, price: 210, stock: 15 }]
+      }
+    };
+    return mocks[slug];
+  };
+
+  // Handle Review Submission
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', name: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser(user);
+        setReviewForm(prev => ({ ...prev, name: user.user_metadata?.full_name || user.email?.split('@')[0] || '' }));
+      }
+    });
+  }, [supabase]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !user) return;
+    setSubmittingReview(true);
+    
+    const { error } = await supabase
+      .from('product_reviews')
+      .insert([{
+        product_id: product.id,
+        user_id: user.id,
+        user_name: reviewForm.name || user.email?.split('@')[0] || 'Client',
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+        is_approved: false // Always needs moderation
+      }]);
+
+    if (!error) {
+      setReviewSuccess(true);
+      setReviewForm({ rating: 5, comment: '', name: user.user_metadata?.full_name || user.email?.split('@')[0] || '' });
+    } else {
+      useToast.getState().show('Erreur lors du dépôt de l\'avis : ' + error.message, 'error');
+    }
+    setSubmittingReview(false);
+  };
+
+  const [email, setEmail] = useState('');
+  const [notified, setNotified] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleNotifyMe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !selectedVariant) return;
+    setSubmitting(true);
+    
+    const { error } = await supabase
+      .from('stock_notifications')
+      .insert([{
+        product_id: product.id,
+        variant_id: selectedVariant.id,
+        email: email,
+        status: 'pending'
+      }]);
+
+    if (!error) {
+      setNotified(true);
+      setEmail('');
+    }
+    setSubmitting(false);
+  };
+
+  const handleAddToCart = () => {
+    if (!product || !selectedVariant || selectedVariant.stock <= 0) return;
+
+    addItem({
+      id: product.id,
+      name: language === 'it' && product.name_it ? product.name_it : product.name,
+      size: `${selectedVariant.size_ml}ml`,
+      price: selectedVariant.price,
+      quantity: quantity,
+      image: product.product_images?.find((img: any) => img.is_primary)?.url || product.product_images?.[0]?.url || '',
+      variantId: selectedVariant.id
+    });
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-brand-cream">
+        <Header />
+        <div className="mx-auto max-w-screen-2xl px-6 pb-24 pt-32 md:px-12">
+          <div className="grid animate-pulse grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+            <div className="lg:col-span-7">
+              <div className="aspect-[3/4] rounded-sm bg-gradient-to-br from-brand-black/[0.07] to-brand-black/[0.02]" />
+            </div>
+            <div className="lg:col-span-5 space-y-8 pt-2">
+              <div className="h-3 w-24 rounded-full bg-brand-gold/30" />
+              <div className="h-12 max-w-md rounded bg-brand-black/10" />
+              <div className="h-20 max-w-lg rounded bg-brand-black/5" />
+              <div className="h-14 w-full max-w-sm rounded bg-brand-black/80" />
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+  if (!product) return <div className="min-h-screen bg-brand-cream flex items-center justify-center font-serif italic text-center px-6">
+    <div>
+      <h1 className="text-3xl font-serif mb-6 italic">Produit non trouvé</h1>
+      <Link href="/parfums" className="luxury-button inline-block">{t('catalog.view_all', 'Voir tout le catalogue')}</Link>
+    </div>
+  </div>;
+
+  const variants = product.product_variants || [];
+  const isOutOfStock = selectedVariant && selectedVariant.stock <= 0;
+
+  // I18n Product Data
+  const displayName = language === 'it' && product.name_it ? product.name_it : product.name;
+  const displayFamily = language === 'it' && product.family_it ? product.family_it : product.family;
+  const displayDescription = language === 'it' && product.description_it ? product.description_it : product.description;
+  const displayProfileTitle = language === 'it' && product.olfactory_profile_title_it ? product.olfactory_profile_title_it : product.olfactory_profile_title_fr;
+  const displayProfileDesc = language === 'it' && product.olfactory_profile_description_it ? product.olfactory_profile_description_it : product.olfactory_profile_description_fr;
+
+  const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5;
+
+  const olfactoryVisualsByKind = useMemo(
+    () => mapVisualsByKind(product.product_olfactory_visuals),
+    [product.product_olfactory_visuals]
+  );
+  const storyVisual = olfactoryVisualsByKind.story_panel;
+  const pyramidVisual = olfactoryVisualsByKind.pyramid_diagram;
+  const pyramidImageUrl = pyramidVisual?.image_url?.trim() || product.olfactory_diagram_url?.trim() || '';
+
+  return (
+    <main className="min-h-screen bg-brand-cream">
+      <Header />
+
+      <div className="pt-32 pb-20 px-6 md:px-12 max-w-screen-2xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-7">
+            <ProductGallery images={product.product_images?.map((img: any) => img.url) || []} />
+          </div>
+
+          <div className="lg:col-span-5 flex flex-col">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold font-sans font-bold">
+                  {displayFamily}
+                </span>
+                <div className="flex items-center gap-4">
+                  <button className="text-brand-black/40 hover:text-brand-gold transition-colors"><Share2 size={18} strokeWidth={1.5} /></button>
+                  <button className="text-brand-black/40 hover:text-brand-gold transition-colors"><Heart size={18} strokeWidth={1.5} /></button>
+                </div>
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl font-serif mb-6">{displayName}</h1>
+              
+              <div className="flex items-center gap-4 mb-8">
+                <div className="flex text-brand-gold">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill={i < Math.round(averageRating) ? "currentColor" : "none"} />)}
+                </div>
+                <span className="text-[10px] uppercase tracking-widest text-brand-black/40 font-sans font-bold">
+                  {reviews.length} {t('product.reviews', 'Avis Clients')}
+                </span>
+              </div>
+
+              <p className="text-brand-black/70 font-sans text-base leading-relaxed mb-10">
+                {displayDescription}
+              </p>
+
+              {/* Size Selector */}
+              <div className="mb-10">
+                <span className="text-[10px] uppercase tracking-widest font-sans mb-4 block font-bold">{t('product.format', 'Format')}</span>
+                <div className="flex flex-wrap gap-3">
+                  {variants.map((v: any) => (
+                    <button
+                      key={v.id}
+                      onClick={() => { setSelectedVariant(v); setNotified(false); }}
+                      className={cn(
+                        "px-6 py-3 border text-xs font-sans tracking-widest transition-all duration-300",
+                        selectedVariant?.id === v.id ? 'border-brand-black bg-brand-black text-brand-cream' : 'border-brand-black/10 hover:border-brand-gold'
+                      )}
+                    >
+                      {v.size_ml}ml
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between mb-10">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-brand-black/40 block mb-1 font-bold">Prix</span>
+                  <span className="text-3xl font-serif">{selectedVariant ? formatPrice(selectedVariant.price) : '—'}</span>
+                </div>
+                <div className="text-right">
+                  {isOutOfStock ? (
+                    <span className="text-[10px] uppercase tracking-widest font-sans text-red-500 font-bold">{t('product.out_of_stock', 'Rupture de Stock')}</span>
+                  ) : (
+                    <span className="text-[10px] uppercase tracking-widest font-sans text-green-600 font-bold">{t('product.in_stock', 'En Stock')}</span>
+                  )}
+                </div>
+              </div>
+
+              {isOutOfStock ? (
+                <div className="mb-10 p-8 bg-brand-black/5 rounded-2xl border border-brand-black/5">
+                  <h4 className="text-sm font-serif mb-4">{t('product.out_of_stock_title', 'Ce format est actuellement indisponible')}</h4>
+                  <p className="text-[11px] text-brand-black/60 mb-6 leading-relaxed">
+                    {t('product.out_of_stock_desc', 'Inscrivez-vous pour être prévenu(e) dès son retour en stock.')}
+                  </p>
+                  
+                  {notified ? (
+                    <div className="flex items-center gap-3 text-green-600 text-[10px] uppercase tracking-widest font-bold animate-in fade-in slide-in-from-bottom-2">
+                      <CheckCircle2 size={16} />
+                      {t('product.notify_success', 'Merci ! Nous vous préviendrons par email.')}
+                    </div>
+                  ) : (
+                    <form onSubmit={handleNotifyMe} className="flex gap-2">
+                      <input type="email" required placeholder={t('form.email', 'VOTRE EMAIL')} value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 bg-white border border-brand-black/10 px-4 py-3 text-[10px] uppercase tracking-widest focus:outline-none focus:border-brand-gold transition-all" />
+                      <button type="submit" disabled={submitting} className="bg-brand-black text-brand-cream px-6 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-gold transition-all disabled:opacity-50">
+                        {submitting ? '...' : t('form.notify_me', 'PRÉVENEZ-MOI')}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ) : (
+                <button onClick={handleAddToCart} className="luxury-button w-full py-5 text-sm mb-10">
+                  {t('product.add_to_cart', 'Ajouter au Panier')}
+                </button>
+              )}
+
+              <div className="grid grid-cols-3 gap-4 py-8 border-y border-brand-black/5">
+                {[
+                  { icon: Truck, text: 'Livraison Offerte' },
+                  { icon: RefreshCw, text: 'Retours 30 Jours' },
+                  { icon: ShieldCheck, text: 'Paiement Sécurisé' }
+                ].map((b, i) => (
+                  <div key={i} className="flex flex-col items-center text-center gap-2">
+                    <b.icon size={20} strokeWidth={1} className="text-brand-gold" />
+                    <span className="text-[8px] uppercase tracking-widest font-sans font-bold">{b.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-32">
+          <div className="flex border-b border-brand-black/5 mb-16 overflow-x-auto no-scrollbar justify-center">
+            {['description', 'profile olfactif', 'avis clients'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-sans transition-all whitespace-nowrap font-bold",
+                  activeTab === tab ? 'text-brand-gold border-b border-brand-gold' : 'text-brand-black/40 hover:text-brand-black'
+                )}
+              >
+                {t(`product.tab.${tab.replace(/ /g, '_')}`, tab)}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            {activeTab === 'description' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                <h3 className="text-3xl font-serif italic text-center mb-12">L&apos;Histoire de {displayName}</h3>
+                <p className="text-lg font-sans text-brand-black/70 leading-relaxed text-center italic">
+                  &quot;{product.story || displayDescription}&quot;
+                </p>
+                <div className="grid grid-cols-2 gap-12 pt-12">
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-widest text-brand-gold mb-4 font-bold">{t('product.usage', 'Conseils d\'utilisation')}</h4>
+                    <p className="text-sm font-sans text-brand-black/70 leading-relaxed">
+                      {t('product.usage_desc', 'Vaporisez sur les points de pulsation : poignets, creux du cou et derrière les oreilles.')}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-widest text-brand-gold mb-4 font-bold">{t('product.conservation', 'Conservation')}</h4>
+                    <p className="text-sm font-sans text-brand-black/70 leading-relaxed">
+                      {t('product.conservation_desc', 'Conservez votre flacon à l\'abri de la lumière directe et des variations de température.')}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'profile olfactif' && (
+              <OlfactoryProfile
+                diagramUrl={product.olfactory_diagram_url}
+                title={displayProfileTitle}
+                description={displayProfileDesc}
+                storyPanel={
+                  storyVisual?.image_url
+                    ? {
+                        url: storyVisual.image_url,
+                        caption: language === 'it' ? storyVisual.caption_it : storyVisual.caption_fr,
+                        alt: language === 'it' ? storyVisual.alt_it : storyVisual.alt_fr,
+                      }
+                    : undefined
+                }
+                pyramidImage={
+                  pyramidImageUrl
+                    ? {
+                        url: pyramidImageUrl,
+                        caption: language === 'it' ? pyramidVisual?.caption_it : pyramidVisual?.caption_fr,
+                        alt: language === 'it' ? pyramidVisual?.alt_it : pyramidVisual?.alt_fr,
+                      }
+                    : undefined
+                }
+                notes={{
+                  head: product.olfactory_notes?.filter((n: any) => n.type === 'head') || [],
+                  heart: product.olfactory_notes?.filter((n: any) => n.type === 'heart') || [],
+                  base: product.olfactory_notes?.filter((n: any) => n.type === 'base') || [],
+                }}
+              />
+            )}
+
+            {activeTab === 'avis clients' && (
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+                    {/* Review Form */}
+                    <div className="lg:col-span-5 bg-white p-10 rounded-[40px] border border-brand-black/5 shadow-xl shadow-brand-black/5 h-fit">
+                      <h3 className="text-2xl font-serif mb-6">{t('review.write', 'Partagez votre expérience')}</h3>
+                      {!user ? (
+                        <div className="text-center py-8 space-y-6">
+                           <div className="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mx-auto text-brand-gold">
+                              <ShieldCheck size={32} />
+                           </div>
+                           <p className="text-sm text-brand-black/60 font-medium">
+                              {t('review.login_required', 'Vous devez être connecté pour déposer un avis.')}
+                           </p>
+                           <button 
+                             onClick={() => window.location.href = '/login'}
+                             className="luxury-button w-full py-4 text-[10px]"
+                           >
+                              {t('auth.login', 'Se Connecter')}
+                           </button>
+                        </div>
+                      ) : reviewSuccess ? (
+                        <div className="bg-green-50 text-green-600 p-8 rounded-3xl text-sm font-medium border border-green-100 flex flex-col items-center text-center gap-4">
+                           <CheckCircle2 size={32} />
+                           <p>{t('review.success', 'Merci ! Votre avis a été envoyé pour modération et sera publié très prochainement.')}</p>
+                           <button onClick={() => setReviewSuccess(false)} className="text-[10px] uppercase tracking-widest font-black underline underline-offset-4">Écrire un autre avis</button>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleReviewSubmit} className="space-y-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">{t('review.name', 'Votre Nom')}</label>
+                            <input type="text" required value={reviewForm.name} onChange={e => setReviewForm({...reviewForm, name: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm focus:ring-1 focus:ring-brand-gold/30" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">{t('review.rating', 'Note')}</label>
+                            <div className="flex gap-2">
+                              {[1,2,3,4,5].map(star => (
+                                <button key={star} type="button" onClick={() => setReviewForm({...reviewForm, rating: star})} className={cn("transition-all", reviewForm.rating >= star ? "text-brand-gold" : "text-gray-200")}>
+                                  <Star size={24} fill={reviewForm.rating >= star ? "currentColor" : "none"} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">{t('review.comment', 'Votre avis')}</label>
+                            <textarea required rows={4} value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm focus:ring-1 focus:ring-brand-gold/30" placeholder={t('review.placeholder', 'Quelle émotion ce parfum vous procure-t-il ?')} />
+                          </div>
+                          <button type="submit" disabled={submittingReview} className="luxury-button w-full py-5 flex items-center justify-center gap-3">
+                            {submittingReview ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                            {t('review.submit', 'Publier mon avis')}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+
+                    {/* Review List */}
+                    <div className="lg:col-span-7 space-y-8">
+                       <h3 className="text-2xl font-serif">{reviews.length} {t('review.count', 'Témoignages')}</h3>
+                       {loadingReviews ? (
+                         <div className="text-center py-20 italic text-gray-400">Chargement des avis...</div>
+                       ) : reviews.length === 0 ? (
+                         <div className="text-center py-20 bg-white rounded-[40px] border border-dashed border-gray-200">
+                           <MessageSquare size={32} className="text-gray-100 mx-auto mb-4" />
+                           <p className="text-xs text-gray-400 uppercase tracking-widest font-bold font-sans">{t('review.empty', 'Soyez le premier à donner votre avis')}</p>
+                         </div>
+                       ) : (
+                         reviews.map((r) => (
+                           <div key={r.id} className="bg-white p-8 rounded-[32px] border border-brand-black/5 shadow-sm">
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold font-bold">
+                                    {r.user_name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-xs font-bold uppercase tracking-wider">{r.user_name}</h4>
+                                    <p className="text-[9px] text-gray-400 font-bold">{new Date(r.created_at).toLocaleDateString()}</p>
+                                  </div>
+                                </div>
+                                <div className="flex text-brand-gold">
+                                  {[...Array(5)].map((_, i) => <Star key={i} size={10} fill={i < r.rating ? "currentColor" : "none"} />)}
+                                </div>
+                              </div>
+                              <p className="text-sm text-brand-black/70 italic font-serif leading-relaxed">
+                                &quot;{r.comment}&quot;
+                              </p>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                  </div>
+               </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 w-full bg-brand-cream border-t border-brand-black/5 p-4 md:hidden z-40 flex items-center justify-between gap-4">
+        <div>
+          <span className="text-lg font-serif">{selectedVariant ? formatPrice(selectedVariant.price) : '—'}</span>
+        </div>
+        <button onClick={handleAddToCart} className="luxury-button flex-1 py-3 text-[10px]">
+          {t('product.add_to_cart', 'Ajouter au Panier')}
+        </button>
+      </div>
+
+      <Footer />
+    </main>
+  );
+}
