@@ -184,6 +184,7 @@ export default function AdminProductsPage() {
       family: formData.get('family') as string,
       family_it: formData.get('family_it') as string,
       description: formData.get('description') as string,
+      long_desc: formData.get('description') as string,
       description_it: formData.get('description_it') as string,
       status: formData.get('status') as string,
       intensity: parseInt(formData.get('intensity') as string) || 3,
@@ -198,19 +199,37 @@ export default function AdminProductsPage() {
     let productId = selectedProduct?.id;
 
     try {
+      const persistProduct = async (mode: 'insert' | 'update') => {
+        let candidatePayload: Record<string, any> = { ...payload };
+
+        while (true) {
+          const query =
+            mode === 'update'
+              ? supabase
+                  .from('products')
+                  .update({ ...candidatePayload, updated_at: new Date().toISOString() })
+                  .eq('id', productId)
+                  .select()
+                  .single()
+              : supabase.from('products').insert(candidatePayload).select().single();
+
+          const { data, error } = await query;
+          if (!error) return { data };
+
+          const msg = error.message || '';
+          const match = msg.match(/Could not find the '([^']+)' column/);
+          if (!match) throw error;
+
+          const missingColumn = match[1];
+          if (!(missingColumn in candidatePayload)) throw error;
+          delete candidatePayload[missingColumn];
+        }
+      };
+
       if (isEditing) {
-        const { error } = await supabase
-          .from('products')
-          .update({ ...payload, updated_at: new Date().toISOString() })
-          .eq('id', productId);
-        if (error) throw error;
+        await persistProduct('update');
       } else {
-        const { data, error } = await supabase
-          .from('products')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
+        const { data } = await persistProduct('insert');
         productId = data.id;
       }
 
@@ -431,7 +450,7 @@ export default function AdminProductsPage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">Description (FR)</label>
-                        <textarea name="description" rows={4} defaultValue={selectedProduct?.description} className="w-full bg-white border-none rounded-[24px] p-6 text-sm leading-relaxed focus:ring-1 focus:ring-brand-gold/30" placeholder="Histoire du parfum..."></textarea>
+                        <textarea name="description" rows={4} defaultValue={selectedProduct?.description || selectedProduct?.long_desc} className="w-full bg-white border-none rounded-[24px] p-6 text-sm leading-relaxed focus:ring-1 focus:ring-brand-gold/30" placeholder="Histoire du parfum..."></textarea>
                       </div>
                     </div>
                   </section>
