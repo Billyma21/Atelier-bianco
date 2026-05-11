@@ -10,6 +10,12 @@ import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { normalizeProductSlug } from '@/lib/product-slug';
 import { SlidersHorizontal, X } from 'lucide-react';
+import {
+  MASAMVNE_DESCRIPTION_FR,
+  MASAMVNE_SHORT_DESC_FR,
+  WHY_DESCRIPTION_FR,
+  WHY_SHORT_DESC_FR,
+} from '@/lib/brand-copy';
 
 export type CatalogCollection = {
   id: string;
@@ -83,6 +89,8 @@ function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
       price: 219,
       image: '/images/why-packshot-hero.png',
       status: 'active',
+      short_desc: WHY_SHORT_DESC_FR,
+      description: WHY_DESCRIPTION_FR,
       product_images: [{ url: '/images/why-packshot-hero.png', is_primary: true }],
       product_variants: [
         { price: 219, size_ml: 50 },
@@ -100,6 +108,8 @@ function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
       price: 209,
       image: '/images/masamvne-packshot.png',
       status: 'active',
+      short_desc: MASAMVNE_SHORT_DESC_FR,
+      description: MASAMVNE_DESCRIPTION_FR,
       product_images: [{ url: '/images/masamvne-packshot.png', is_primary: true }],
       product_variants: [
         { price: 209, size_ml: 50 },

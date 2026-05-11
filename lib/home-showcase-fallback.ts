@@ -1,3 +1,5 @@
+import { MASAMVNE_DESCRIPTION_FR, MASAMVNE_SHORT_DESC_FR, WHY_DESCRIPTION_FR, WHY_SHORT_DESC_FR } from '@/lib/brand-copy';
+
 /**
  * Repli vitrine accueil lorsque Supabase ne renvoie aucun produit « retail »
  * (pas de produits mis en avant, données manquantes, ou instance vide).
@@ -13,9 +15,8 @@ export function getHomeShowcaseFallbackProducts(): Record<string, unknown>[] {
       family_it: 'Extrait de Parfum',
       status: 'active',
       is_featured: true,
-      description:
-        'Un extrait où le mystère rencontre la précision : caramel, safran, pêche et fruits rouges ; cœur épicé-floral ; fond boisé, vanille, musc et benjoin. Symbole ¿? gravé sur le flacon.',
-      short_desc: 'Extrait de parfum — pyramide complète · Made in Italy.',
+      description: WHY_DESCRIPTION_FR,
+      short_desc: WHY_SHORT_DESC_FR,
       product_images: [
         { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
         { url: '/images/why-pyramid-editorial.png', is_primary: false, type: 'detail' },
@@ -34,9 +35,8 @@ export function getHomeShowcaseFallbackProducts(): Record<string, unknown>[] {
       family_it: 'Extrait de Parfum',
       status: 'active',
       is_featured: true,
-      description:
-        'Framboise et noix de coco en tête, cœur caramel–sucre roux–vanille, fond rose et musc. Une ligne précise, inspirée de l’estampe et du katana.',
-      short_desc: 'Extrait de parfum — fabrication italienne.',
+      description: MASAMVNE_DESCRIPTION_FR,
+      short_desc: MASAMVNE_SHORT_DESC_FR,
       product_images: [
         { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
         { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },

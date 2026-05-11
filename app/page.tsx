@@ -20,13 +20,13 @@ import {
   sortSignatureShowcaseProducts,
 } from '@/lib/catalog-quality';
 import { getHomeShowcaseFallbackProducts } from '@/lib/home-showcase-fallback';
+import { FEATURED_COLLECTION_DESC_FR, MAISON_BRIEF_FR } from '@/lib/brand-copy';
 
 const FALLBACK_FEATURED_COLLECTION = {
   name: 'Alter Egos',
   name_it: 'Alter Egos',
   slug: 'alter-egos',
-  description:
-    'La collection Alter Egos : deux extraits — WHY et MASAMVNE — signatures olfactives Atelier Bianco, fabriqués en Italie.',
+  description: FEATURED_COLLECTION_DESC_FR,
   image_url: '/images/why-packshot-hero.png',
 };
 
@@ -171,7 +171,7 @@ export default function HomePage() {
               )}
             </h2>
             <p className="text-brand-black/70 font-sans text-base leading-relaxed mb-10 max-w-lg">
-              {homeContent?.story_text || t('home.story_desc', "Atelier Bianco est né d'une volonté de revenir à l'essence même du parfum. Nos créations sont le fruit d'une quête incessante de pureté et d'émotion, où chaque note raconte une histoire, chaque sillage évoque un souvenir.")}
+              {homeContent?.story_text || t('home.story_desc', MAISON_BRIEF_FR)}
             </p>
             <Link href="/la-maison" className="text-[10px] uppercase tracking-widest font-sans border-b border-brand-black/20 pb-2 hover:border-brand-gold hover:text-brand-gold transition-all">
               {t('home.story_cta', 'Découvrir notre univers')}

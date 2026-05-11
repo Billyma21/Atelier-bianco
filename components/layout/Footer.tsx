@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import { FOOTER_STORY_FR } from '@/lib/brand-copy';
 
 /** Icônes réseaux (Lucide v1 ne fournit plus les logos de marque). */
 function IconInstagram({ size = 18 }: { size?: number }) {
@@ -55,7 +56,7 @@ export default function Footer() {
         <div className="md:col-span-1">
           <h2 className="text-2xl font-logo tracking-widest capitalize mb-6 text-brand-cream">Atelier Bianco</h2>
           <p className="text-sm font-sans text-brand-cream/60 leading-relaxed max-w-xs">
-            {t('footer.story', 'Maison de parfum de niche dédiée à l\'art de l\'olfaction. Des créations intemporelles, façonnées avec passion.')}
+            {t('footer.story', FOOTER_STORY_FR)}
           </p>
         </div>
 

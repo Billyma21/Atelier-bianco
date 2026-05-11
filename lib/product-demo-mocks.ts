@@ -1,3 +1,10 @@
+import {
+  MASAMVNE_DESCRIPTION_FR,
+  MASAMVNE_SHORT_DESC_FR,
+  WHY_DESCRIPTION_FR,
+  WHY_SHORT_DESC_FR,
+} from '@/lib/brand-copy';
+
 /** Données de démo uniquement si aucun produit en base (slugs connus). */
 export function getDemoProduct(slug: string): Record<string, unknown> | undefined {
   const canonical = slug === 'masamune' ? 'masamvne' : slug;
@@ -45,12 +52,12 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
       slug: 'why',
       family: 'Extrait de Parfum',
       family_it: 'Extrait de Parfum',
-      description:
-        'Un extrait de parfum intense où le mystère rencontre la précision. WHY pose la question essentielle : un sillage ambré et boisé, une concentration maximale.',
+      short_desc: WHY_SHORT_DESC_FR,
+      description: WHY_DESCRIPTION_FR,
       long_description:
-        'Fabriqué en Italie. Pyramide complète : caramel, safran, pêche, fruits rouges ; cœur poivre rose, gingembre, ciste ; fond boisé, vanille, musc, benjoin.',
+        'Fabriqué en Italie. Pyramide : caramel, safran, pêche, fruits rouges ; cœur poivre rose, gingembre, ciste ; fond boisé, vanille, musc, benjoin.',
       story:
-        "Pas une réponse : une présence. WHY est pensé comme une œuvre de verre, un extrait de parfum au format le plus rare — l'Extrait.",
+        'WHY est une fragrance construite autour de l’inexplicable — une signature élégante, mystérieuse et addictive.',
       product_images: [
         { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
         { url: '/images/why-lifestyle-2.png', is_primary: false, type: 'lifestyle' },
@@ -80,11 +87,12 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
       slug: 'masamvne',
       family: 'Extrait de Parfum',
       family_it: 'Extrait de Parfum',
-      description:
-        'Framboise et noix de coco en ouverture, cœur caramel–sucre roux–vanille, fond rose et musc — une ligne olfactive précise comme une lame.',
+      short_desc: MASAMVNE_SHORT_DESC_FR,
+      description: MASAMVNE_DESCRIPTION_FR,
       long_description:
-        'Un extrait gourmand et floral oriental, pensé comme une estampe : contraste, élégance, fabrication italienne.',
-      story: 'Écrit comme une estampe : ligne nette, liquidité pêche-rose, présence racée.',
+        'Fabriqué en Italie. Pyramide : framboise, noix de coco ; cœur caramel, sucre roux, vanille ; fond rose, musc.',
+      story:
+        'Une lame silencieuse — précise, puissante, maîtrisée. Une signature tranchante qui captive et attire les compliments.',
       product_images: [
         { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
         { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },

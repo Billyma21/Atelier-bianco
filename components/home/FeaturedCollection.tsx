@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { FEATURED_COLLECTION_DESC_FR } from '@/lib/brand-copy';
 
 export type FeaturedCollectionData = {
   name: string;
@@ -72,10 +73,7 @@ export default function FeaturedCollection({ collection }: Props) {
               </h3>
               <p className="font-sans text-sm md:text-base leading-relaxed text-brand-cream/80 max-w-md mb-10">
                 {collection.description?.trim() ||
-                  t(
-                    'home.featured_collection_fallback_desc',
-                    'Alter Egos réunit deux extraits — WHY et MASAMVNE — concentration maximale, fabrication italienne, esthétique minimaliste.'
-                  )}
+                  t('home.featured_collection_fallback_desc', FEATURED_COLLECTION_DESC_FR)}
               </p>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                 <Link

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { MAISON_HERO_LEAD_FR } from '@/lib/brand-copy';
 import {
   DEFAULT_HERO_BADGES,
   DEFAULT_HERO_PRODUCT_IMAGE,
@@ -25,7 +26,7 @@ function BadgeCard({ badge }: { badge: HeroBadge }) {
       className={
         isDark
           ? 'block rounded-[2rem] border border-white/5 bg-brand-black/95 px-7 py-5 shadow-2xl backdrop-blur-xl'
-          : 'block rounded-[2rem] border border-brand-gold/10 bg-white/90 px-7 py-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] backdrop-blur-xl'
+          : 'block'
       }
     >
       <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.3em] text-brand-gold">{badge.label}</span>
@@ -91,7 +92,7 @@ export default function Hero({ content }: { content?: any }) {
               ? content.hero_lead
               : content?.story_text?.trim()
                 ? content.story_text
-                : t('hero.story_text', "Une rencontre entre l'ombre et la lumière, capturer l'essence du subconscient dans un sillage inoubliable.")}
+                : t('hero.story_text', MAISON_HERO_LEAD_FR)}
           </p>
           
           <div className="flex flex-col sm:flex-row items-start md:items-center gap-10">

@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import ProductCard from '@/components/product/ProductCard';
 import { formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
+import { HOME_DUAL_SUBTITLE_FR, WHY_SHORT_DESC_FR } from '@/lib/brand-copy';
 import { normalizeProductSlug } from '@/lib/product-slug';
 
 type ProductShape = {
@@ -82,7 +83,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
             <p className="mx-auto mt-6 max-w-2xl font-sans text-sm leading-relaxed text-brand-black/60">
               {t(
                 'home.dual_subtitle',
-                'WHY et MASAMVNE — deux extraits de la collection Alter Egos. Fabriqués en Italie, concentrations maximales.'
+                HOME_DUAL_SUBTITLE_FR
               )}
             </p>
           </div>
@@ -180,7 +181,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
       (typeof flagship.description === 'string' && flagship.description.trim()) ||
       t(
         'home.flagship_why_blurb',
-        'Une énigme olfactive sculptée dans le verre : WHY, concentration maximale, fabrication italienne, symbole ¿? au cœur du flacon.'
+        WHY_SHORT_DESC_FR
       );
 
     return (
