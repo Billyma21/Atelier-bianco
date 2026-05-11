@@ -34,17 +34,22 @@ export default function Header() {
     { name: t('nav.account', 'Mon Compte'), href: '/mon-compte' },
   ];
 
+  const header = settings?.header;
+  const defaultLogo = '/images/logo-atelier-bianco-wordmark.png';
+  const logoImageSrc = header?.logo_url?.trim() || defaultLogo;
+  const logoLabel = (header?.logo_text?.trim() || 'Atelier Bianco').replace(/\s+/g, ' ');
+
   return (
     <>
-      {settings?.header.show_announcement && (
+      {settings?.header?.show_announcement && (
         <div className="bg-brand-black text-brand-cream text-[10px] uppercase tracking-widest py-2 text-center fixed top-0 w-full z-[60]">
-          {settings.header.announcement_text}
+          {settings.header?.announcement_text}
         </div>
       )}
       <header
         className={cn(
           'fixed left-0 w-full z-50 transition-all duration-500 px-6 py-4 md:px-12 md:py-6',
-          settings?.header.show_announcement ? 'top-8' : 'top-0',
+          settings?.header?.show_announcement ? 'top-8' : 'top-0',
           isScrolled ? 'bg-brand-cream/90 backdrop-blur-md py-4 shadow-sm' : 'bg-transparent'
         )}
       >
@@ -70,23 +75,23 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Logo */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            {settings?.header.logo_type === 'image' && settings.header.logo_url ? (
-              <div className="relative h-8 md:h-12 w-32">
-                <Image 
-                  src={settings.header.logo_url} 
-                  alt={settings.header.logo_text} 
-                  fill
-                  className="object-contain mix-blend-multiply"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ) : (
-              <h1 className="text-2xl md:text-4xl font-logo tracking-[0.1em] capitalize text-brand-black">
-                {settings?.header.logo_text || 'Atelier Bianco'}
-              </h1>
-            )}
+          {/* Wordmark noir sur fond transparent — logo_url Supabase ou PNG local */}
+          <Link
+            href="/"
+            aria-label={`${logoLabel} — accueil`}
+            className="absolute left-1/2 -translate-x-1/2 flex max-w-[min(320px,82vw)] items-center justify-center"
+          >
+            <Image
+              src={logoImageSrc}
+              alt=""
+              width={280}
+              height={48}
+              className="h-8 w-auto max-w-[min(260px,78vw)] object-contain object-center md:h-10"
+              priority
+              aria-hidden
+              unoptimized={logoImageSrc.startsWith('/')}
+              referrerPolicy={logoImageSrc.startsWith('/') ? undefined : 'no-referrer'}
+            />
           </Link>
 
           {/* Actions */}

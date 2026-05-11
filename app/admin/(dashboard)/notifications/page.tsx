@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { 
   Bell, 
@@ -17,6 +18,8 @@ import {
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
+  ExternalLink,
   FileText,
   Table as TableIcon
 } from 'lucide-react';
@@ -25,11 +28,29 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [siteAlerts, setSiteAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
   const supabase = useMemo(() => createClient(), []);
+
+  const fetchSiteAlerts = React.useCallback(async () => {
+    const { data } = await supabase
+      .from('admin_site_alerts')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+    if (data) setSiteAlerts(data);
+  }, [supabase]);
+
+  const resolveSiteAlert = async (id: string) => {
+    const { error } = await supabase
+      .from('admin_site_alerts')
+      .update({ status: 'resolved', updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (!error) setSiteAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
 
   const fetchNotifications = React.useCallback(async () => {
     setLoading(true);
@@ -47,8 +68,12 @@ export default function AdminNotificationsPage() {
   }, [supabase]);
 
   useEffect(() => {
-    fetchNotifications(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchNotifications();
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    fetchSiteAlerts();
+  }, [fetchSiteAlerts]);
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter(n => {
@@ -115,6 +140,59 @@ export default function AdminNotificationsPage() {
           </button>
         </div>
       </div>
+
+      {siteAlerts.length > 0 && (
+        <div className="rounded-[32px] border border-amber-200 bg-amber-50/90 p-8 shadow-sm">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <AlertTriangle className="text-amber-600" size={22} />
+            <h2 className="font-serif text-xl text-amber-950">Incidents catalogue (liens cassés)</h2>
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-800">
+              {siteAlerts.length} ouvert{siteAlerts.length > 1 ? 's' : ''}
+            </span>
+          </div>
+          <ul className="space-y-4">
+            {siteAlerts.map((a) => (
+              <li
+                key={a.id}
+                className="flex flex-col gap-4 rounded-2xl border border-amber-100/80 bg-white/90 p-5 md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-800/80">
+                    Fiche produit introuvable
+                  </p>
+                  <p className="mt-1 font-mono text-sm text-gray-900">
+                    slug : <strong>{a.slug}</strong>
+                  </p>
+                  {a.source_path && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      URL : <span className="font-mono">{a.source_path}</span>
+                    </p>
+                  )}
+                  <p className="mt-2 text-[10px] text-gray-400">
+                    {new Date(a.created_at).toLocaleString('fr-FR')}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/admin/produits"
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-800 transition-colors hover:border-brand-gold hover:text-brand-gold"
+                  >
+                    Corriger dans Produits
+                    <ExternalLink size={14} />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => resolveSiteAlert(a.id)}
+                    className="rounded-xl bg-emerald-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white transition-colors hover:bg-emerald-700"
+                  >
+                    Marquer résolu
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -27,7 +27,7 @@ export default function AdminReviewsPage() {
   }, [supabase, filter]);
 
   useEffect(() => {
-    fetchReviews(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchReviews();
   }, [fetchReviews]);
 
   const handleApprove = async (id: string) => {

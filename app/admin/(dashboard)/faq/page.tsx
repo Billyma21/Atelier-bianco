@@ -28,7 +28,7 @@ export default function AdminFAQPage() {
   }, [supabase]);
 
   useEffect(() => {
-    fetchFaqs(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchFaqs();
   }, [fetchFaqs]);
 
   const handleSubmit = async (e: React.FormEvent) => {

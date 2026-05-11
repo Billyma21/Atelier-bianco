@@ -1,13 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
-
-function baseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
-    process.env.APP_URL?.replace(/\/$/, '') ||
-    'http://localhost:3000'
-  );
-}
+import { getSiteUrl } from '@/lib/site-url';
 
 const STATIC_PATHS = [
   '',
@@ -25,7 +18,7 @@ const STATIC_PATHS = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const host = baseUrl();
+  const host = getSiteUrl();
   const now = new Date();
   const entries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
     url: `${host}${path}`,

@@ -136,7 +136,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="KENZY"
+                  placeholder="Email ou identifiant"
                   className="w-full bg-white/[0.05] border border-white/10 py-4 pl-12 pr-4 text-white text-sm rounded-xl focus:border-brand-gold/50 focus:bg-white/[0.08] outline-none transition-all"
                   required
                   disabled={loading}

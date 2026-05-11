@@ -2,8 +2,32 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Instagram, Facebook, Twitter } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+
+/** Icônes réseaux (Lucide v1 ne fournit plus les logos de marque). */
+function IconInstagram({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+function IconFacebook({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+function IconTwitterX({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 type FooterCollection = { id: string; name: string; name_it?: string | null; slug: string };
 
@@ -92,9 +116,9 @@ export default function Footer() {
 
       <div className="max-w-screen-2xl mx-auto pt-10 border-t border-brand-cream/10 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex space-x-6">
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors"><Instagram size={18} /></a>
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors"><Facebook size={18} /></a>
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors"><Twitter size={18} /></a>
+          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="Instagram"><IconInstagram /></a>
+          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="Facebook"><IconFacebook /></a>
+          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="X (Twitter)"><IconTwitterX /></a>
         </div>
         
         <div className="text-[10px] uppercase tracking-widest font-sans text-brand-cream/40 flex space-x-8">

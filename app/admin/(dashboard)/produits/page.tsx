@@ -26,6 +26,7 @@ import {
 import { formatPrice, cn } from '@/lib/utils';
 import Image from 'next/image';
 import { mapVisualsByKind, type OlfactoryVisualKind } from '@/lib/olfactory-visuals';
+import { normalizeProductSlug } from '@/lib/product-slug';
 
 type OlfactoryVisualForm = {
   image_url: string;
@@ -72,7 +73,8 @@ export default function AdminProductsPage() {
       return;
     }
     const ext = (file.name.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'jpg';
-    const path = `${selectedProduct.id}/${kind}-${Date.now()}.${ext}`;
+    const uid = globalThis.crypto.randomUUID();
+    const path = `${selectedProduct.id}/${kind}-${uid}.${ext}`;
     const { error } = await supabase.storage.from('product-olfactory').upload(path, file, {
       cacheControl: '3600',
       upsert: true,
@@ -180,7 +182,7 @@ export default function AdminProductsPage() {
     const payload = {
       name: formData.get('name') as string,
       name_it: formData.get('name_it') as string,
-      slug: formData.get('slug') as string,
+      slug: normalizeProductSlug((formData.get('slug') as string) || ''),
       family: formData.get('family') as string,
       family_it: formData.get('family_it') as string,
       description: formData.get('description') as string,
@@ -195,6 +197,12 @@ export default function AdminProductsPage() {
       olfactory_profile_description_fr: formData.get('olfactory_profile_description_fr') as string,
       olfactory_profile_description_it: formData.get('olfactory_profile_description_it') as string,
     };
+
+    if (!payload.slug) {
+      useToast.getState().show('Indiquez un slug valide (lettres, chiffres, tirets).', 'error');
+      setSaving(false);
+      return;
+    }
 
     let productId = selectedProduct?.id;
 
@@ -503,7 +511,7 @@ export default function AdminProductsPage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">Status</label>
-                        <select name="status" defaultValue={selectedProduct?.status || 'draft'} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-[11px] uppercase font-black focus:ring-1 focus:ring-brand-gold/30">
+                        <select name="status" defaultValue={selectedProduct?.status || 'active'} className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-[11px] uppercase font-black focus:ring-1 focus:ring-brand-gold/30">
                           <option value="draft">Brouillon</option>
                           <option value="active">Actif</option>
                         </select>

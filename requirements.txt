@@ -1,0 +1,20 @@
+# Atelier Bianco — prérequis et installation
+#
+# Ce projet est une application Next.js (TypeScript). Les dépendances npm
+# sont déclarées dans package.json et verrouillées dans package-lock.json.
+#
+# Prérequis
+#   - Node.js >= 20 (champ "engines" dans package.json)
+#   - npm (recommandé, livré avec Node.js)
+#
+# Installation
+#   npm install
+#
+# Scripts utiles
+#   npm run dev     — serveur de développement (http://localhost:3000)
+#   npm run build   — compilation de production
+#   npm run start   — serveur Next après build
+#   npm run lint    — ESLint
+#
+# Variables d'environnement : copier / adapter .env.example si présent,
+# ou créer .env.local selon la documentation du projet.

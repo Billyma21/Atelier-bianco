@@ -7,6 +7,12 @@ import {
   resolvePublicSupabaseKeyForServer,
 } from '@/lib/supabase';
 import { fetchActiveProductsCatalog, fetchPublishedCollectionsCompat } from '@/lib/supabase-catalog-compat';
+import {
+  filterRetailProducts,
+  pickStorefrontCollections,
+  sortSignatureShowcaseProducts,
+} from '@/lib/catalog-quality';
+import { retailCatalogOrFallback } from '@/lib/catalog-api-fallback';
 
 export const runtime = 'nodejs';
 
@@ -52,21 +58,32 @@ export async function GET() {
     );
   }
 
-  const cols = collections ?? [];
+  const colsRaw = collections ?? [];
+  const retailFiltered = sortSignatureShowcaseProducts(filterRetailProducts(products ?? []));
+  const storefrontProducts = retailCatalogOrFallback(retailFiltered, colsRaw as { id: string; slug?: string; name?: string; name_it?: string | null; sort_order?: number | null }[]);
+
   if (cErr) {
-    return NextResponse.json(
-      {
-        error: 'fetch_failed',
-        message: cErr.message,
-        code: cErr.code,
-        products: products ?? [],
-        collections: [],
-      },
-      { status: 502 }
+    /** Produits OK mais collections en échec : ne pas bloquer tout le catalogue (onglets vides = « Toutes les créations » uniquement). */
+    const res = NextResponse.json({
+      products: storefrontProducts,
+      collections: [],
+      error: null,
+      warning: `collections_unavailable:${cErr.message}`,
+    });
+    res.headers.set(
+      'Cache-Control',
+      'public, max-age=15, s-maxage=30, stale-while-revalidate=120'
     );
+    return res;
   }
 
-  const res = NextResponse.json({ products: products ?? [], collections: cols, error: null });
+  const storefrontCols = pickStorefrontCollections(colsRaw as { slug?: string }[]);
+
+  const res = NextResponse.json({
+    products: storefrontProducts,
+    collections: storefrontCols,
+    error: null,
+  });
   res.headers.set(
     'Cache-Control',
     'public, max-age=30, s-maxage=60, stale-while-revalidate=300'

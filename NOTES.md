@@ -8,15 +8,16 @@
 
 ## Configuration des variables
 
-1. À la racine du dépôt, le fichier **`env`** liste toutes les variables attendues (commentaires inclus).
-2. Copiez-le en **`.env.local`** (même dossier que `package.json`).
-3. Renseignez au minimum pour un site « lecture catalogue » :
+1. Modèle versionné : **`.env.example`** (aucun secret).
+2. Copiez-le en **`.env.local`** : `cp .env.example .env.local` (Windows : `copy .env.example .env.local`).
+3. **Évitez** un fichier **`.env`** contenant des secrets à la racine : Next.js charge `.env`, `.env.local`, etc. ; plusieurs fichiers peuvent se marcher dessus. Tout le local doit vivre dans **`.env.local`**.
+4. Renseignez au minimum pour un site « lecture catalogue » :
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` **ou** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-4. Pour **créer une commande** et **Stripe Checkout** côté serveur, ajoutez aussi :
+5. Pour **créer une commande** et **Stripe Checkout** côté serveur, ajoutez aussi :
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` (webhook pointant vers votre URL déployée ou Stripe CLI en local).
-5. Alignez **`APP_URL`** et **`NEXT_PUBLIC_APP_URL`** sur l’URL réelle du site en production (ex. `https://www.atelier-bianco.com`).
+6. En **local**, `APP_URL` / `NEXT_PUBLIC_APP_URL` = `http://localhost:3000`. En **production** (Render, Vercel, etc.), redéfinissez-les sur l’URL publique du site.
 
 ## Commandes
 
@@ -87,4 +88,4 @@ Autres scripts : `npm run build`, `npm run start`, `npm run lint`.
 
 - **Service role Supabase** = accès total à la base : réservé au serveur.
 - **Clés Stripe secrètes** : serveur uniquement.
-- En cas de fuite d’une clé, **révoquez / régénérez** dans les tableaux de bord respectifs.
+- Ne **commitez** jamais `.env.local` ni un `.env` rempli. Si un fichier de secrets a été poussé sur Git, **révoquez / régénérez** les clés concernées puis `git rm --cached` si besoin.

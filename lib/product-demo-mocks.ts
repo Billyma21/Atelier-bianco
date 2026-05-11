@@ -1,0 +1,114 @@
+/** Données de démo uniquement si aucun produit en base (slugs connus). */
+export function getDemoProduct(slug: string): Record<string, unknown> | undefined {
+  const canonical = slug === 'masamune' ? 'masamvne' : slug;
+  const mocks: Record<string, Record<string, unknown>> = {
+    'mure-iris': {
+      id: 'mock-p1',
+      name: 'Mûre Iris',
+      slug: 'mure-iris',
+      family: 'Floral Fruité Poudré',
+      description:
+        "Une rencontre poétique entre la gourmandise sauvage de la mûre et l'élégance poudrée de l'iris de Florence.",
+      long_description: 'Mûre Iris est une fragrance de contrastes...',
+      story: "Inspiré par les souvenirs d'enfance...",
+      olfactory_notes: [
+        { type: 'head', name: 'Mûre Sauvage', image_url: '' },
+        { type: 'heart', name: 'Iris de Florence', image_url: '' },
+        { type: 'base', name: 'Musc Blanc', image_url: '' },
+      ],
+      product_images: [
+        {
+          url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1000&auto=format&fit=crop',
+          is_primary: true,
+        },
+      ],
+      product_variants: [{ id: 'mock-v1', size_ml: 50, price: 125, stock: 10 }],
+    },
+    'bois-ebene': {
+      id: 'mock-p2',
+      name: "Bois d'Ébène",
+      slug: 'bois-ebene',
+      family: 'Boisé Intense',
+      description: "Un hommage à la profondeur mystique de l'ébène.",
+      product_images: [
+        {
+          url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000&auto=format&fit=crop',
+          is_primary: true,
+        },
+      ],
+      product_variants: [{ id: 'mock-v2', size_ml: 100, price: 210, stock: 15 }],
+    },
+    why: {
+      id: 'demo-why',
+      name: 'WHY',
+      name_it: 'WHY',
+      slug: 'why',
+      family: 'Extrait de Parfum',
+      family_it: 'Extrait de Parfum',
+      description:
+        'Un extrait de parfum intense où le mystère rencontre la précision. WHY pose la question essentielle : un sillage ambré et boisé, une concentration maximale.',
+      long_description:
+        'Fabriqué en Italie. Pyramide complète : caramel, safran, pêche, fruits rouges ; cœur poivre rose, gingembre, ciste ; fond boisé, vanille, musc, benjoin.',
+      story:
+        "Pas une réponse : une présence. WHY est pensé comme une œuvre de verre, un extrait de parfum au format le plus rare — l'Extrait.",
+      product_images: [
+        { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
+        { url: '/images/why-lifestyle-2.png', is_primary: false, type: 'lifestyle' },
+        { url: '/images/why-gallery-01.png', is_primary: false, type: 'lifestyle' },
+      ],
+      product_variants: [
+        { id: 'demo-why-50', size_ml: 50, price: 219, stock: 20, sku: 'AB-WHY-50' },
+        { id: 'demo-why-100', size_ml: 100, price: 319, stock: 12, sku: 'AB-WHY-100' },
+      ],
+      olfactory_notes: [
+        { type: 'head', name: 'Caramel', image_url: '' },
+        { type: 'heart', name: 'Poivre rose', image_url: '' },
+        { type: 'base', name: 'Benjoin', image_url: '' },
+      ],
+      ingredients:
+        'Alcohol Denat., Parfum (Fragrance), Aqua (Water), Limonene, Linalool, Benzyl Salicylate, Coumarin, Citronellol, Geraniol, Eugenol, Citral, Benzyl Alcohol, Farnesol.',
+      olfactory_profile_title_fr: '¿? — Une présence, pas une réponse',
+      olfactory_profile_description_fr:
+        'Tête : caramel, safran, pêche, fruits rouges. Cœur : poivre rose, gingembre, ciste. Fond : notes boisées, vanille, musc, benjoin.',
+      status: 'active',
+      is_new: true,
+    },
+    masamvne: {
+      id: 'demo-masamvne',
+      name: 'MASAMVNE',
+      name_it: 'MASAMVNE',
+      slug: 'masamvne',
+      family: 'Extrait de Parfum',
+      family_it: 'Extrait de Parfum',
+      description:
+        'Framboise et noix de coco en ouverture, cœur caramel–sucre roux–vanille, fond rose et musc — une ligne olfactive précise comme une lame.',
+      long_description:
+        'Un extrait gourmand et floral oriental, pensé comme une estampe : contraste, élégance, fabrication italienne.',
+      story: 'Écrit comme une estampe : ligne nette, liquidité pêche-rose, présence racée.',
+      product_images: [
+        { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
+        { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },
+      ],
+      product_variants: [
+        { id: 'demo-ms-50', size_ml: 50, price: 209, stock: 15, sku: 'AB-MASAMVNE-50' },
+        { id: 'demo-ms-100', size_ml: 100, price: 299, stock: 10, sku: 'AB-MASAMVNE-100' },
+      ],
+      olfactory_notes: [
+        { type: 'head', name: 'Framboise', image_url: '' },
+        { type: 'heart', name: 'Caramel', image_url: '' },
+        { type: 'base', name: 'Rose', image_url: '' },
+      ],
+      olfactory_profile_title_fr: 'La ligne et la matière',
+      olfactory_profile_description_fr:
+        'Tête : framboise, noix de coco. Cœur : caramel, sucre roux, vanille. Fond : rose, musc.',
+      status: 'active',
+      is_new: true,
+    },
+  };
+  const row = mocks[canonical];
+  if (!row) return undefined;
+  if (slug === 'masamune') {
+    return { ...row, slug: 'masamune', id: 'demo-masamune-legacy-url' };
+  }
+  return row;
+}

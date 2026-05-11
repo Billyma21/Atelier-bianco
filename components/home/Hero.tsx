@@ -87,7 +87,11 @@ export default function Hero({ content }: { content?: any }) {
           </h1>
           
           <p className="text-brand-black/60 font-sans text-[11px] md:text-base max-w-sm mb-16 leading-relaxed tracking-wide italic border-l-2 border-brand-gold/20 pl-8">
-            {content?.story_text || t('hero.story_text', "Une rencontre entre l'ombre et la lumière, capturer l'essence du subconscient dans un sillage inoubliable.")}
+            {content?.hero_lead?.trim()
+              ? content.hero_lead
+              : content?.story_text?.trim()
+                ? content.story_text
+                : t('hero.story_text', "Une rencontre entre l'ombre et la lumière, capturer l'essence du subconscient dans un sillage inoubliable.")}
           </p>
           
           <div className="flex flex-col sm:flex-row items-start md:items-center gap-10">

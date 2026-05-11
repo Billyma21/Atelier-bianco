@@ -1,14 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
-
-function publicBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
-    process.env.APP_URL?.replace(/\/$/, '') ||
-    'http://localhost:3000'
-  );
-}
+import { getSiteUrl } from '@/lib/site-url';
 
 export async function generateMetadata({
   params,
@@ -16,7 +9,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const base = publicBaseUrl();
+  const base = getSiteUrl();
   return {
     alternates: { canonical: `${base}/produits/${slug}` },
   };

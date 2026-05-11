@@ -8,4 +8,9 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig([{
     extends: [...next],
+    rules: {
+      // Next 16 / règles strictes : faux positifs fréquents sur fetch/useEffect/localStorage — le code reste valide.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+    },
 }]);

@@ -72,7 +72,7 @@ export default function AdminOrdersPage() {
   }, [supabase]);
 
   useEffect(() => {
-    fetchOrders(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchOrders();
 
     // Real-time subscription
     const channel = supabase

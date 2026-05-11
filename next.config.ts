@@ -3,9 +3,6 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@react-pdf/renderer'],
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },

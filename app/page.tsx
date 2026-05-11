@@ -1,60 +1,139 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/home/Hero';
 import FAQSection from '@/components/home/FAQSection';
-import ProductCard from '@/components/product/ProductCard';
+import FeaturedCollection from '@/components/home/FeaturedCollection';
+import HomeSelection from '@/components/home/HomeSelection';
 import { motion } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { useLanguage } from '@/context/LanguageContext';
+import { DEFAULT_HERO_SECONDARY_IMAGE } from '@/lib/hero-content';
+import {
+  filterRetailProducts,
+  isRetailReadyProduct,
+  pickStorefrontCollections,
+  sortSignatureShowcaseProducts,
+} from '@/lib/catalog-quality';
+import { getHomeShowcaseFallbackProducts } from '@/lib/home-showcase-fallback';
+
+const FALLBACK_FEATURED_COLLECTION = {
+  name: 'Alter Egos',
+  name_it: 'Alter Egos',
+  slug: 'alter-egos',
+  description:
+    'La collection Alter Egos : deux extraits — WHY et MASAMVNE — signatures olfactives Atelier Bianco, fabriqués en Italie.',
+  image_url: '/images/why-packshot-hero.png',
+};
 
 export default function HomePage() {
   const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [homeContent, setHomeContent] = useState<any>(null);
   const [activeCollections, setActiveCollections] = useState<any[]>([]);
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const supabase = createClient();
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch Best Sellers
-      const { data: bData } = await supabase
-        .from('products')
-        .select('*, product_images(*), product_variants(*)')
-        .eq('status', 'active')
-        .eq('is_featured', true)
-        .limit(4);
-      if (bData) setBestSellers(bData);
+      let bestList: any[] = [];
+      try {
+        const { data: featuredRows } = await supabase
+          .from('products')
+          .select('*, product_images(*), product_variants(*)')
+          .eq('status', 'active')
+          .eq('is_featured', true)
+          .limit(24);
+        bestList = sortSignatureShowcaseProducts(
+          filterRetailProducts((featuredRows ?? []) as Record<string, unknown>[])
+        );
 
-      // Fetch Home Content
-      const { data: hData } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'home_content')
-        .single();
-      if (hData) setHomeContent(hData.value);
+        if (bestList.length === 0) {
+          const { data: duo } = await supabase
+            .from('products')
+            .select('*, product_images(*), product_variants(*)')
+            .eq('status', 'active')
+            .in('slug', ['why', 'masamvne', 'masamune']);
+          bestList = sortSignatureShowcaseProducts(
+            filterRetailProducts((duo ?? []) as Record<string, unknown>[])
+          );
+        }
+        if (bestList.length === 0) {
+          const { data: whyOnly } = await supabase
+            .from('products')
+            .select('*, product_images(*), product_variants(*)')
+            .eq('status', 'active')
+            .eq('slug', 'why')
+            .maybeSingle();
+          if (whyOnly && isRetailReadyProduct(whyOnly as Record<string, unknown>)) {
+            bestList = [whyOnly];
+          }
+        }
+        if (bestList.length === 0) {
+          const { data: pool } = await supabase
+            .from('products')
+            .select('*, product_images(*), product_variants(*)')
+            .eq('status', 'active')
+            .limit(40);
+          bestList = sortSignatureShowcaseProducts(
+            filterRetailProducts((pool ?? []) as Record<string, unknown>[])
+          ).slice(0, 6);
+        }
+      } catch (e) {
+        console.error('Home showcase fetch:', e);
+      }
 
-      // Fetch Collections (schéma enrichi : sort_order, is_published ; repli si migration pas encore appliquée)
-      const cRes = await supabase
-        .from('collections')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order', { ascending: true })
-        .order('name', { ascending: true })
-        .limit(12);
-      if (cRes.data) setActiveCollections(cRes.data);
-      else if (!cRes.error) setActiveCollections([]);
-      else {
-        const c2 = await supabase.from('collections').select('*').order('name', { ascending: true }).limit(12);
-        if (c2.data) setActiveCollections(c2.data);
+      if (bestList.length === 0) {
+        bestList = getHomeShowcaseFallbackProducts() as any[];
+      }
+
+      setBestSellers(bestList.slice(0, 6));
+
+      try {
+        const { data: hData } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'home_content')
+          .single();
+        if (hData) setHomeContent(hData.value);
+
+        const cRes = await supabase
+          .from('collections')
+          .select('*')
+          .eq('is_published', true)
+          .order('sort_order', { ascending: true })
+          .order('name', { ascending: true })
+          .limit(12);
+        if (cRes.data) setActiveCollections(pickStorefrontCollections(cRes.data));
+        else if (!cRes.error) setActiveCollections([]);
+        else {
+          const c2 = await supabase.from('collections').select('*').order('name', { ascending: true }).limit(12);
+          if (c2.data) setActiveCollections(pickStorefrontCollections(c2.data));
+        }
+      } catch (e) {
+        console.error('Home settings/collections:', e);
       }
     };
     fetchData();
   }, [supabase]);
+
+  const featuredCollection = useMemo(() => {
+    const row = activeCollections[0];
+    if (!row) return FALLBACK_FEATURED_COLLECTION;
+    return {
+      ...FALLBACK_FEATURED_COLLECTION,
+      ...row,
+      image_url: row.image_url || FALLBACK_FEATURED_COLLECTION.image_url,
+      description: row.description ?? FALLBACK_FEATURED_COLLECTION.description,
+    };
+  }, [activeCollections]);
+
+  const storyImageSrc =
+    (typeof homeContent?.hero_image === 'string' && homeContent.hero_image.trim()) ||
+    DEFAULT_HERO_SECONDARY_IMAGE;
 
   return (
     <main className="min-h-screen">
@@ -104,80 +183,24 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
-            className="relative aspect-[4/5] overflow-hidden"
+            className="relative aspect-[4/5] overflow-hidden bg-brand-black/5"
           >
             <Image
-              src="https://images.unsplash.com/photo-1615484477778-ca3b77940c25?q=80&w=1000&auto=format&fit=crop"
-              alt="Atelier Bianco Craftsmanship"
+              src={storyImageSrc}
+              alt={homeContent?.hero_image_alt || 'WHY — Extrait de Parfum Atelier Bianco'}
               fill
-              className="object-cover"
-              referrerPolicy="no-referrer"
+              className="object-cover object-center"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority={false}
+              unoptimized={storyImageSrc.startsWith('/')}
             />
           </motion.div>
         </div>
       </section>
 
-      {/* Bestsellers Grid */}
-      <section className="py-32 bg-white">
-        <div className="max-w-screen-2xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-6 block">{t('home.bestsellers_label', 'Sélection')}</span>
-              <h2 className="text-4xl md:text-5xl font-serif">{t('home.bestsellers_title', 'Les Incontournables')}</h2>
-            </div>
-            <Link href="/parfums" className="text-[10px] uppercase tracking-widest font-sans border-b border-brand-black/20 pb-2 hover:border-brand-gold hover:text-brand-gold transition-all">
-              {t('home.bestsellers_cta', 'Voir tout le catalogue')}
-            </Link>
-          </div>
+      <HomeSelection products={bestSellers} collectionSlug={featuredCollection.slug} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-            {bestSellers.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Collections Carousel Placeholder */}
-      <section className="py-32 px-6 md:px-12 max-w-screen-2xl mx-auto">
-        <div className="text-center mb-20">
-          <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-6 block">{t('home.collections_label', 'Univers')}</span>
-          <h2 className="text-4xl md:text-5xl font-serif">{t('home.collections_title', 'Nos Collections')}</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {(activeCollections.length > 0 ? activeCollections : [
-            { name: 'SIGNATURE', name_it: 'SIGNATURE', image_url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop', slug: 'signature' },
-            { name: t('collection.oriental', 'Collection Orientale'), name_it: t('collection.oriental', 'Collezione Orientale'), image_url: 'https://images.unsplash.com/photo-1590736704728-f4730bb30770?q=80&w=800&auto=format&fit=crop', slug: 'orientale' },
-            { name: t('collection.floral', 'Collection Florale'), name_it: t('collection.floral', 'Collezione Fioreale'), image_url: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop', slug: 'florale' },
-            { name: t('collection.woody', 'Collection Boisée'), name_it: t('collection.woody', 'Collezione Legnosa'), image_url: 'https://images.unsplash.com/photo-1547887538-e3a2f32cb1cc?q=80&w=800&auto=format&fit=crop', slug: 'boisee' },
-          ]).map((col, i) => {
-            const colAny = col as { name: string; name_it?: string | null; image_url: string; slug: string };
-            const title = language === 'it' && colAny.name_it?.trim() ? colAny.name_it : colAny.name;
-            return (
-            <motion.div
-              key={colAny.slug || i}
-              whileHover={{ y: -10 }}
-              className="relative aspect-[3/4] overflow-hidden group cursor-pointer"
-            >
-              <Image
-                src={colAny.image_url}
-                alt={title}
-                fill
-                className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-brand-black/30 flex flex-col items-center justify-center text-center p-8">
-                <h3 className="text-2xl text-brand-cream font-serif mb-4">{title}</h3>
-                <Link href={`/parfums?collection=${colAny.slug}`} className="text-[10px] uppercase tracking-widest text-brand-cream border-b border-brand-cream/30 pb-1 group-hover:border-brand-gold group-hover:text-brand-gold transition-all">
-                  {t('home.collections_cta', 'Découvrir')}
-                </Link>
-              </div>
-            </motion.div>
-            );
-          })}
-        </div>
-      </section>
+      <FeaturedCollection collection={featuredCollection} />
 
       {/* Press Section */}
       <section className="py-32 border-t border-brand-black/5">

@@ -7,7 +7,8 @@ import ProductCard from '@/components/product/ProductCard';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { normalizeProductSlug } from '@/lib/product-slug';
 import { SlidersHorizontal, X } from 'lucide-react';
 
 export type CatalogCollection = {
@@ -20,25 +21,40 @@ export type CatalogCollection = {
 
 const MOCK_COLLECTION_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
-function productBelongsToCollection(product: any, collectionId: string | 'all') {
+function productBelongsToCollection(
+  product: any,
+  collectionId: string | 'all',
+  collectionSlug: string | null
+) {
   if (collectionId === 'all') return true;
   const links = product.product_collections as
-    | { collection_id?: string; collections?: { id?: string } }[]
+    | { collection_id?: string; collections?: { id?: string; slug?: string } }[]
     | undefined;
-  if (!links?.length) return false;
-  return links.some(
-    (pc) => pc.collection_id === collectionId || pc.collections?.id === collectionId
-  );
+  if (links?.length) {
+    return links.some(
+      (pc) =>
+        pc.collection_id === collectionId ||
+        pc.collections?.id === collectionId ||
+        (!!collectionSlug && pc.collections?.slug === collectionSlug)
+    );
+  }
+  // Liaisons absentes (repli vitrine, anciennes données) : WHY / MASAMVNE pour Alter Egos
+  if (collectionSlug === 'alter-egos') {
+    const s = normalizeProductSlug(String(product.slug ?? ''));
+    return s === 'why' || s === 'masamvne' || s === 'masamune';
+  }
+  return false;
 }
 
 const SHOW_CATALOG_MOCK =
   typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SHOW_CATALOG_MOCK === 'true';
 
-/** En local, si Supabase n’est pas configuré, afficher des exemples pour travailler sur l’UI (désactivé en build production). */
+/**
+ * Données fictives du catalogue : uniquement si NEXT_PUBLIC_CATALOG_DEV_FALLBACK=true.
+ * Sans cette variable, le catalogue lit toujours Supabase (comme en prod) — configurez .env.local.
+ */
 const CATALOG_DEV_DEMO =
-  typeof process !== 'undefined' &&
-  (process.env.NODE_ENV === 'development' ||
-    process.env.NEXT_PUBLIC_CATALOG_DEV_FALLBACK === 'true');
+  typeof process !== 'undefined' && process.env.NEXT_PUBLIC_CATALOG_DEV_FALLBACK === 'true';
 
 function mockPc(collectionId: string) {
   return [
@@ -46,9 +62,9 @@ function mockPc(collectionId: string) {
       collection_id: collectionId,
       collections: {
         id: collectionId,
-        name: 'SIGNATURE',
-        name_it: 'SIGNATURE',
-        slug: 'signature',
+        name: 'Alter Egos',
+        name_it: 'Alter Egos',
+        slug: 'alter-egos',
         sort_order: 0,
       },
     },
@@ -58,51 +74,37 @@ function mockPc(collectionId: string) {
 function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
   return [
     {
-      id: 'mock-p1',
-      name: 'Mûre Iris',
-      slug: 'mure-iris',
-      family: 'Floral',
-      price: 185,
-      image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1000&auto=format&fit=crop',
+      id: 'mock-why',
+      name: 'WHY',
+      name_it: 'WHY',
+      slug: 'why',
+      family: 'Extrait de Parfum',
+      family_it: 'Extrait de Parfum',
+      price: 219,
+      image: '/images/why-packshot-hero.png',
       status: 'active',
-      product_images: [],
-      product_variants: [{ price: 185 }],
+      product_images: [{ url: '/images/why-packshot-hero.png', is_primary: true }],
+      product_variants: [
+        { price: 219, size_ml: 50 },
+        { price: 319, size_ml: 100 },
+      ],
       product_collections: mockPc(collectionId),
     },
     {
-      id: 'mock-p2',
-      name: 'Ambre Nuit',
-      slug: 'ambre-nuit',
-      family: 'Oriental',
-      price: 195,
-      image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop',
+      id: 'mock-masamvne',
+      name: 'MASAMVNE',
+      name_it: 'MASAMVNE',
+      slug: 'masamvne',
+      family: 'Extrait de Parfum',
+      family_it: 'Extrait de Parfum',
+      price: 209,
+      image: '/images/masamvne-packshot.png',
       status: 'active',
-      product_images: [],
-      product_variants: [{ price: 195 }],
-      product_collections: mockPc(collectionId),
-    },
-    {
-      id: 'mock-p3',
-      name: "Bois d'Ébène",
-      slug: 'bois-ebene',
-      family: 'Boisé',
-      price: 210,
-      image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000&auto=format&fit=crop',
-      status: 'active',
-      product_images: [],
-      product_variants: [{ price: 210 }],
-      product_collections: mockPc(collectionId),
-    },
-    {
-      id: 'mock-p4',
-      name: 'Cuir Sacré',
-      slug: 'cuir-sacre',
-      family: 'Cuiré',
-      price: 225,
-      image: 'https://images.unsplash.com/photo-1590736704728-f4730bb30770?q=80&w=1000&auto=format&fit=crop',
-      status: 'active',
-      product_images: [],
-      product_variants: [{ price: 225 }],
+      product_images: [{ url: '/images/masamvne-packshot.png', is_primary: true }],
+      product_variants: [
+        { price: 209, size_ml: 50 },
+        { price: 299, size_ml: 100 },
+      ],
       product_collections: mockPc(collectionId),
     },
   ];
@@ -110,15 +112,16 @@ function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
 
 const MOCK_COLLECTION_ROW: CatalogCollection = {
   id: MOCK_COLLECTION_ID,
-  name: 'SIGNATURE',
-  name_it: 'SIGNATURE',
-  slug: 'signature',
+  name: 'Alter Egos',
+  name_it: 'Alter Egos',
+  slug: 'alter-egos',
   sort_order: 0,
 };
 
 export default function CataloguePage() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [collectionsList, setCollectionsList] = useState<CatalogCollection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,9 +134,16 @@ export default function CataloguePage() {
   const collectionLabel = (c: CatalogCollection) =>
     language === 'it' && c.name_it?.trim() ? c.name_it : c.name;
 
+  const activeCollectionSlug = useMemo(() => {
+    if (activeCollectionId === 'all') return null;
+    return collectionsList.find((c) => c.id === activeCollectionId)?.slug ?? null;
+  }, [activeCollectionId, collectionsList]);
+
   const products = useMemo(() => {
-    return allProducts.filter((p) => productBelongsToCollection(p, activeCollectionId));
-  }, [allProducts, activeCollectionId]);
+    return allProducts.filter((p) =>
+      productBelongsToCollection(p, activeCollectionId, activeCollectionSlug)
+    );
+  }, [allProducts, activeCollectionId, activeCollectionSlug]);
 
   const selectCollection = (id: string | 'all', slug?: string) => {
     setActiveCollectionId(id);
@@ -147,12 +157,15 @@ export default function CataloguePage() {
 
   useEffect(() => {
     if (collectionsList.length === 0) return;
-    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-    const slug = params.get('collection');
-    if (!slug) return;
+    const slug = searchParams.get('collection');
+    if (!slug) {
+      setActiveCollectionId('all');
+      return;
+    }
     const found = collectionsList.find((c) => c.slug === slug);
     if (found) setActiveCollectionId(found.id);
-  }, [collectionsList]);
+    else if (slug) setActiveCollectionId('all');
+  }, [collectionsList, searchParams]);
 
   /** Une seule requête au chargement : le serveur parle à Supabase (même origine), changement de famille = instantané. */
   useEffect(() => {
@@ -162,16 +175,14 @@ export default function CataloguePage() {
       setFetchError(null);
       setCatalogDevDemo(false);
       try {
-        const res = await fetch('/api/catalog');
+        const res = await fetch('/api/catalog', { cache: 'no-store' });
         const payload = await res.json().catch(() => ({}));
         if (cancelled) return;
 
         if (!res.ok) {
-          if (
-            CATALOG_DEV_DEMO &&
-            res.status === 503 &&
-            payload?.error === 'not_configured'
-          ) {
+          const isSupabaseError =
+            payload?.error === 'not_configured' || payload?.error === 'fetch_failed';
+          if (CATALOG_DEV_DEMO && (res.status === 503 || res.status === 502) && isSupabaseError) {
             setCollectionsList([MOCK_COLLECTION_ROW]);
             setAllProducts(getMockCatalogProducts(MOCK_COLLECTION_ID));
             setActiveCollectionId('all');
@@ -196,7 +207,14 @@ export default function CataloguePage() {
         const cols = Array.isArray(payload.collections) ? payload.collections : [];
         setCollectionsList(cols);
 
-        if (list.length === 0 && SHOW_CATALOG_MOCK) {
+        if (list.length === 0 && CATALOG_DEV_DEMO) {
+          const colsEff = cols.length > 0 ? cols : [MOCK_COLLECTION_ROW];
+          const colId = colsEff[0]?.id ?? MOCK_COLLECTION_ID;
+          setCollectionsList(colsEff);
+          setAllProducts(getMockCatalogProducts(colId));
+          setFetchError(null);
+          setCatalogDevDemo(true);
+        } else if (list.length === 0 && SHOW_CATALOG_MOCK) {
           setCollectionsList(cols.length > 0 ? cols : [MOCK_COLLECTION_ROW]);
           setAllProducts(getMockCatalogProducts(MOCK_COLLECTION_ID));
           setFetchError(null);
@@ -299,24 +317,25 @@ export default function CataloguePage() {
         <div className="max-w-screen-2xl mx-auto">
           {fetchError && (
             <div className="mb-10 rounded-2xl border border-red-100 bg-red-50/80 px-6 py-5 text-sm text-red-900">
-              <p className="font-serif font-medium">Impossible de charger le catalogue</p>
-              <p className="mt-2 text-xs leading-relaxed">{fetchError}</p>
-              <p className="mt-4 text-xs text-red-900/85">
-                Dupliquez le fichier <code className="rounded bg-red-100/80 px-1.5 py-0.5 font-mono text-[11px]">env</code> en{' '}
-                <code className="rounded bg-red-100/80 px-1.5 py-0.5 font-mono text-[11px]">.env.local</code>, renseignez
-                l’URL et les clés (Supabase → Settings → API), puis redémarrez le serveur. Sur Vercel : Project → Settings →
-                Environment Variables.
+              <p className="font-serif font-medium">
+                {t('catalog.load_error_title', 'Impossible de charger le catalogue pour le moment.')}
               </p>
+              {process.env.NODE_ENV === 'development' && (
+                <details className="mt-3 text-left text-xs">
+                  <summary className="cursor-pointer text-red-800/90">Détails techniques (dev)</summary>
+                  <p className="mt-2 leading-relaxed">{fetchError}</p>
+                </details>
+              )}
             </div>
           )}
 
           {catalogDevDemo && !fetchError && (
             <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50/90 px-5 py-4 text-xs text-amber-950">
-              <p className="font-medium">Catalogue de démonstration (sans base Supabase)</p>
+              <p className="font-medium">Catalogue de démonstration (repli UI)</p>
               <p className="mt-1 opacity-90">
-                Les fiches liées resteront en secours mock tant que la base n’est pas branchée. Partez du fichier{' '}
-                <code className="rounded bg-white/80 px-1 font-mono">env</code> pour créer{' '}
-                <code className="rounded bg-white/80 px-1 font-mono">.env.local</code> avec vos vrais produits.
+                Variable active :{' '}
+                <code className="rounded bg-white/80 px-1 font-mono">NEXT_PUBLIC_CATALOG_DEV_FALLBACK=true</code> — retirez-la
+                pour utiliser uniquement Supabase.
               </p>
             </div>
           )}
@@ -353,12 +372,14 @@ export default function CataloguePage() {
               <p className="mb-6 font-serif text-2xl italic text-brand-black/80">
                 {t(
                   'catalog.empty_collection',
-                  'Aucun parfum n’est associé à cette collection pour le moment.'
+                  'Aucun parfum dans cette sélection pour le moment.'
                 )}
               </p>
               <p className="mx-auto mb-8 max-w-md text-sm text-brand-black/55">
-                Admin → Produits : cochez la collection (ex. SIGNATURE) sur chaque fragrance, ou créez une nouvelle
-                collection dans Admin → Collections.
+                {t(
+                  'catalog.empty_collection_hint',
+                  'Découvrez l’ensemble des créations ou changez de univers.'
+                )}
               </p>
               <button type="button" onClick={() => selectCollection('all')} className="luxury-button">
                 {t('catalog.show_all_collections', 'Afficher toutes les créations')}
@@ -367,11 +388,10 @@ export default function CataloguePage() {
           ) : (
             <div className="py-24 text-center">
               <p className="mb-4 font-serif text-2xl italic text-brand-black/80">
-                {t('catalog.empty', 'Aucun parfum actif pour le moment.')}
+                {t('catalog.empty', 'Notre catalogue sera bientôt enrichi.')}
               </p>
               <p className="mx-auto mb-8 max-w-md text-sm text-brand-black/55">
-                Dans l’admin, activez des produits et rattachez-les à la collection <strong>SIGNATURE</strong> (ou
-                toute autre collection publiée).
+                {t('catalog.empty_hint', 'Revenez très prochainement ou contactez-nous pour toute demande.')}
               </p>
               <Link href="/" className="luxury-button inline-block">
                 {t('catalog.back_home', "Retour à l'accueil")}

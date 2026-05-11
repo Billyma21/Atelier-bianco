@@ -3,4 +3,12 @@ node_modules/
 coverage/
 .DS_Store
 *.log
-.env*
+
+# Secrets & environnement local
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# CLI Supabase (mot de passe DB après `supabase link`)
+.supabase/

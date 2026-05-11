@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const runtime = 'nodejs';
-
-function appBaseUrl() {
-  return (
-    process.env.APP_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '');
-}
 
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_SECRET_KEY?.trim();
@@ -77,7 +70,7 @@ export async function POST(request: Request) {
   }
 
   const stripe = new Stripe(secret, { typescript: true });
-  const base = appBaseUrl();
+  const base = getSiteUrl();
 
   const line_items: Array<{
     quantity: number;

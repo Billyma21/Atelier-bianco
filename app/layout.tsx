@@ -7,6 +7,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import LuxuryLoader from '@/components/layout/LuxuryLoader';
 import ToastHost from '@/components/layout/ToastHost';
 import CookieConsent from '@/components/layout/CookieConsent';
+import { getSiteUrl } from '@/lib/site-url';
 
 const inter = Inter({
   subsets: ['latin', 'latin-ext'],
@@ -29,10 +30,7 @@ const pinyon = Pinyon_Script({
   display: 'swap',
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
-  process.env.APP_URL?.replace(/\/$/, '') ||
-  'http://localhost:3000';
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

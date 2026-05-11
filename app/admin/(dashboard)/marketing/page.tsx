@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   DEFAULT_HERO_BADGES,
   DEFAULT_HERO_PRODUCT_IMAGE,
+  DEFAULT_HERO_SECONDARY_IMAGE,
   type HeroBadge,
 } from '@/lib/hero-content';
 
@@ -76,13 +77,19 @@ export default function AdminMarketingPage() {
         v.hero_badges = DEFAULT_HERO_BADGES.map((b) => ({ ...b }));
       }
       setHomeContent(v);
+    } else {
+      setHomeContent({
+        hero_badges: DEFAULT_HERO_BADGES.map((b) => ({ ...b })),
+        hero_product_image: DEFAULT_HERO_PRODUCT_IMAGE,
+        hero_image: DEFAULT_HERO_SECONDARY_IMAGE,
+      });
     }
-    
+
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
-    fetchData(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchData();
   }, [fetchData]);
 
   const handleSaveHomeContent = async () => {
@@ -274,6 +281,10 @@ export default function AdminMarketingPage() {
         )}
       </div>
       </React.Fragment>
+    ) : !homeContent ? (
+      <div className="flex items-center justify-center rounded-[40px] border border-gray-100 bg-white py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-gold" />
+      </div>
     ) : (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-sm space-y-12">
@@ -305,7 +316,22 @@ export default function AdminMarketingPage() {
                    </div>
                    <div className="space-y-2 md:col-span-2">
                       <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">
-                        Image d’arrière-plan (bandeau / story)
+                        Accroche sous le titre (colonne gauche, italique)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={homeContent?.hero_lead ?? ''}
+                        onChange={(e) => setHomeContent({ ...homeContent, hero_lead: e.target.value })}
+                        className="w-full rounded-2xl border-none bg-gray-50 p-6 text-sm leading-relaxed focus:ring-1 focus:ring-brand-gold/30"
+                        placeholder="Texte court sous « Extrait de Parfum »…"
+                      />
+                      <p className="text-[10px] text-gray-400">
+                        Si vide, le texte « Histoire » plus bas peut servir de repli (ancien comportement).
+                      </p>
+                   </div>
+                   <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">
+                        Image storytelling « Maison » (bloc texte + photo)
                       </label>
                       <div className="relative group">
                         <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
@@ -314,13 +340,17 @@ export default function AdminMarketingPage() {
                           value={homeContent?.hero_image || ''} 
                           onChange={(e) => setHomeContent({ ...homeContent, hero_image: e.target.value })}
                           className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-6 text-xs font-mono focus:ring-1 focus:ring-brand-gold/30 transition-all" 
-                          placeholder="https://..."
+                          placeholder={DEFAULT_HERO_SECONDARY_IMAGE}
                         />
                       </div>
+                      <p className="text-[10px] leading-relaxed text-gray-400">
+                        Visuel ambiance / lifestyle sous « Une Maison de Haute Parfumerie ». Défaut :{' '}
+                        <code className="rounded bg-gray-100 px-1">{DEFAULT_HERO_SECONDARY_IMAGE}</code>
+                      </p>
                    </div>
                    <div className="space-y-2 md:col-span-2">
                       <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold ml-1">
-                        Image fiole (Hero à droite — WHY)
+                        Packshot Hero (grande image à droite, au-dessus de la ligne de flottaison)
                       </label>
                       <div className="relative group">
                         <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
@@ -333,8 +363,8 @@ export default function AdminMarketingPage() {
                         />
                       </div>
                       <p className="text-[10px] leading-relaxed text-gray-400">
-                        Vide = image officielle du flacon (<code className="rounded bg-gray-100 px-1">{DEFAULT_HERO_PRODUCT_IMAGE}</code>). Collez une URL
-                        Supabase Storage ou un chemin <code className="rounded bg-gray-100 px-1">/images/…</code>.
+                        Vide = packshot studio par défaut (<code className="rounded bg-gray-100 px-1">{DEFAULT_HERO_PRODUCT_IMAGE}</code>). URL Supabase Storage ou{' '}
+                        <code className="rounded bg-gray-100 px-1">/images/…</code>
                       </p>
                    </div>
                    <div className="space-y-2 md:col-span-2">

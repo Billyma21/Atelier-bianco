@@ -16,11 +16,24 @@ Maison de parfumerie de niche — **vitrine e-commerce** bilingue (FR / IT), cat
 ## Démarrage rapide
 
 1. **Variables d’environnement**  
-   - Référence unique versionnée : fichier **`env`** à la racine.  
-   - Copie locale : **`cp env .env.local`** (ou `copy env .env.local` sous Windows).  
-   - Détail des étapes et prérequis : **`NOTES.md`**.
+   - Modèle versionné unique : **`.env.example`**.  
+   - Copie locale des secrets : **`cp .env.example .env.local`** (Windows : `copy .env.example .env.local`).  
+   - Ne pas utiliser de fichier **`.env`** à la racine en parallèle de **`.env.local`** : Next.js les charge tous les deux et cela crée des conflits. Un seul fichier de travail : **`.env.local`**.  
+   - Renseigner au minimum **`NEXT_PUBLIC_SUPABASE_URL`** et **`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`** ou **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**, plus **`SUPABASE_SERVICE_ROLE_KEY`** pour le catalogue serveur et le checkout.  
+   - Détail : **`NOTES.md`**.
 
-2. **Installation et serveur de dev**
+2. **Base Supabase (schéma + RLS)**  
+   Si le tableau *Database* / l’Advisor indiquent des tables sans RLS ou « No migrations », appliquez les migrations du dépôt :
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref VOTRE_PROJECT_REF
+   npx supabase db push
+   ```
+
+   Le *project ref* est la partie avant `.supabase.co` dans l’URL du projet (ex. `https://tqazhmuvmtgfsggdttzc.supabase.co` → ref `tqazhmuvmtgfsggdttzc`).
+
+3. **Installation et serveur de dev**
 
    ```bash
    npm install
@@ -29,7 +42,7 @@ Maison de parfumerie de niche — **vitrine e-commerce** bilingue (FR / IT), cat
 
    La commande à utiliser au quotidien est **`npm run dev`**. Sous **PowerShell**, si `npm.ps1` est bloqué, utilisez **`npm.cmd run dev`** (voir **`NOTES.md`**) ou les fichiers **`install.cmd`** / **`dev.cmd`** à la racine.
 
-3. Ouvrir **http://localhost:3000** (Next peut choisir un autre port si 3000 est occupé).
+4. Ouvrir **http://localhost:3000** (Next peut choisir un autre port si 3000 est occupé).
 
 ## Scripts npm
 
@@ -44,7 +57,7 @@ Maison de parfumerie de niche — **vitrine e-commerce** bilingue (FR / IT), cat
 - `components/` — UI réutilisable (layout, produit, home, admin…)  
 - `lib/` — clients Supabase, compatibilité catalogue, utilitaires  
 - `supabase/migrations/` — schéma SQL et données de référence (à appliquer sur votre projet Supabase)  
-- `env` — **modèle** de toutes les variables (ne contient pas de secrets)  
+- `.env.example` — **modèle** des variables (sans secrets) ; copie → `.env.local`  
 - `NOTES.md` — checklist lancement, déploiement, sécurité  
 
 ## Fonctionnalités métier (aperçu)

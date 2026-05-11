@@ -56,7 +56,7 @@ export default function AdminClientsPage() {
   }, [supabase]);
 
   useEffect(() => {
-    fetchClients(); // eslint-disable-line react-hooks/set-state-in-effect
+    fetchClients();
   }, [fetchClients]);
 
   const filteredClients = clients.filter(c => {

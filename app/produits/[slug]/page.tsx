@@ -40,6 +40,9 @@ import { formatPrice, cn } from '@/lib/utils';
 import { mapVisualsByKind } from '@/lib/olfactory-visuals';
 import { useCart } from '@/store/useCart';
 import { useLanguage } from '@/context/LanguageContext';
+import { normalizeProductSlug } from '@/lib/product-slug';
+import { getDemoProduct } from '@/lib/product-demo-mocks';
+import { ReportProductMissing } from '@/components/product/ReportProductMissing';
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -47,10 +50,17 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [product, setProduct] = useState<any>(null);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
+  const [activeTab, setActiveTab] = useState('profile olfactif');
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', name: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [email, setEmail] = useState('');
+  const [notified, setNotified] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { addItem } = useCart();
   const supabase = createClient();
 
@@ -69,6 +79,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
+      const rawSlug = resolvedParams?.slug ?? '';
+      const slug = normalizeProductSlug(decodeURIComponent(rawSlug));
+
       try {
         const { data, error } = await supabase
           .from('products')
@@ -81,23 +94,52 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             product_olfactory_visuals(*)
           `
           )
-          .eq('slug', resolvedParams?.slug)
-          .single();
+          .eq('slug', slug)
+          .maybeSingle();
 
-        if (data) {
-          setProduct(data);
-          if (data.product_variants && data.product_variants.length > 0) {
-            const sortedVariants = [...data.product_variants].sort((a, b) => a.size_ml - b.size_ml);
+        if (error) {
+          console.warn('Product fetch:', error.message);
+        }
+
+        let productRow = data;
+        if (!productRow && slug === 'masamune') {
+          const { data: alt } = await supabase
+            .from('products')
+            .select(
+              `
+            *,
+            product_images(*),
+            product_variants(*),
+            olfactory_notes(*),
+            product_olfactory_visuals(*)
+          `
+            )
+            .eq('slug', 'masamvne')
+            .maybeSingle();
+          productRow = alt ?? null;
+        }
+
+        if (productRow) {
+          setProduct(productRow);
+          if (productRow.product_variants && productRow.product_variants.length > 0) {
+            const sortedVariants = [...productRow.product_variants].sort((a, b) => a.size_ml - b.size_ml);
             setSelectedVariant(sortedVariants[0]);
+          } else {
+            setSelectedVariant(null);
           }
-          fetchReviews(data.id);
+          fetchReviews(productRow.id);
         } else {
-          console.warn('Product not found in DB for slug:', resolvedParams?.slug);
-          // Check if it's a mock product they expect
-          if (resolvedParams?.slug === 'mure-iris' || resolvedParams?.slug === 'bois-ebene') {
-             const fallback = getMockProduct(resolvedParams?.slug);
-             setProduct(fallback);
-             setSelectedVariant(fallback.product_variants[0]);
+          console.warn('Product not found for slug:', slug);
+          const demo = getDemoProduct(slug);
+          if (demo) {
+            setProduct(demo);
+            const vars = (demo as { product_variants?: { size_ml: number }[] }).product_variants;
+            if (Array.isArray(vars) && vars.length > 0) {
+              const sorted = [...vars].sort((a, b) => a.size_ml - b.size_ml);
+              setSelectedVariant(sorted[0]);
+            } else {
+              setSelectedVariant(null);
+            }
           }
         }
       } catch (err) {
@@ -110,53 +152,27 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     fetchProduct();
   }, [resolvedParams?.slug, supabase, fetchReviews]);
 
-  // Helper for mock data
-  const getMockProduct = (slug: string) => {
-    const mocks: Record<string, any> = {
-      'mure-iris': {
-          id: 'mock-p1',
-          name: 'Mûre Iris',
-          slug: 'mure-iris',
-          family: 'Floral Fruité Poudré',
-          description: 'Une rencontre poétique entre la gourmandise sauvage de la mûre et l\'élégance poudrée de l\'iris de Florence.',
-          long_description: 'Mûre Iris est une fragrance de contrastes...',
-          story: 'Inspiré par les souvenirs d\'enfance...',
-          olfactory_notes: [
-            { type: 'head', name: 'Mûre Sauvage', image_url: '' },
-            { type: 'heart', name: 'Iris de Florence', image_url: '' },
-            { type: 'base', name: 'Musc Blanc', image_url: '' },
-          ],
-          product_images: [{ url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1000&auto=format&fit=crop', is_primary: true }],
-          product_variants: [{ id: 'mock-v1', size_ml: 50, price: 125, stock: 10 }]
-      },
-      'bois-ebene': {
-          id: 'mock-p2',
-          name: 'Bois d\'Ébène',
-          slug: 'bois-ebene',
-          family: 'Boisé Intense',
-          description: 'Un hommage à la profondeur mystique de l\'ébène.',
-          product_images: [{ url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000&auto=format&fit=crop', is_primary: true }],
-          product_variants: [{ id: 'mock-v2', size_ml: 100, price: 210, stock: 15 }]
-      }
-    };
-    return mocks[slug];
-  };
-
-  // Handle Review Submission
-  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', name: '' });
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewSuccess, setReviewSuccess] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
   useEffect(() => {
-    supabase.auth.getUser().then((result: any) => {
-      const user = result.data.user;
-      if (user) {
-        setUser(user);
-        setReviewForm(prev => ({ ...prev, name: user.user_metadata?.full_name || user.email?.split('@')[0] || '' }));
+    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+      const u = result.data.user;
+      if (u) {
+        setUser(u);
+        setReviewForm((prev) => ({
+          ...prev,
+          name: u.user_metadata?.full_name || u.email?.split('@')[0] || '',
+        }));
       }
     });
   }, [supabase]);
+
+  const olfactoryVisualsByKind = useMemo(
+    () => mapVisualsByKind(product?.product_olfactory_visuals),
+    [product?.product_olfactory_visuals]
+  );
+  const storyVisual = olfactoryVisualsByKind.story_panel;
+  const pyramidVisual = olfactoryVisualsByKind.pyramid_diagram;
+  const pyramidImageUrl =
+    pyramidVisual?.image_url?.trim() || product?.olfactory_diagram_url?.trim() || '';
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,10 +198,6 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     }
     setSubmittingReview(false);
   };
-
-  const [email, setEmail] = useState('');
-  const [notified, setNotified] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const handleNotifyMe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,12 +255,30 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       </main>
     );
   }
-  if (!product) return <div className="min-h-screen bg-brand-cream flex items-center justify-center font-serif italic text-center px-6">
-    <div>
-      <h1 className="text-3xl font-serif mb-6 italic">Produit non trouvé</h1>
-      <Link href="/parfums" className="luxury-button inline-block">{t('catalog.view_all', 'Voir tout le catalogue')}</Link>
-    </div>
-  </div>;
+  if (!product) {
+    const missingSlug = normalizeProductSlug(decodeURIComponent(resolvedParams?.slug ?? ''));
+    return (
+      <main className="min-h-screen bg-brand-cream">
+        <ReportProductMissing slug={missingSlug} />
+        <Header />
+        <div className="flex min-h-[55vh] flex-col items-center justify-center px-6 pb-24 pt-28 text-center">
+          <h1 className="mb-4 max-w-lg font-serif text-3xl font-normal text-brand-black/90">
+            {t('product.not_found_title', 'Cette création n’est pas disponible')}
+          </h1>
+          <p className="mx-auto mb-10 max-w-md text-sm leading-relaxed text-brand-black/55">
+            {t(
+              'product.not_found_desc',
+              'Ce lien est peut-être incomplet ou la fragrance n’est plus au catalogue.'
+            )}
+          </p>
+          <Link href="/parfums" className="luxury-button inline-block">
+            {t('catalog.view_all', 'Voir tout le catalogue')}
+          </Link>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   const variants = product.product_variants || [];
   const isOutOfStock = selectedVariant && selectedVariant.stock <= 0;
@@ -261,14 +291,6 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const displayProfileDesc = language === 'it' && product.olfactory_profile_description_it ? product.olfactory_profile_description_it : product.olfactory_profile_description_fr;
 
   const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5;
-
-  const olfactoryVisualsByKind = useMemo(
-    () => mapVisualsByKind(product.product_olfactory_visuals),
-    [product.product_olfactory_visuals]
-  );
-  const storyVisual = olfactoryVisualsByKind.story_panel;
-  const pyramidVisual = olfactoryVisualsByKind.pyramid_diagram;
-  const pyramidImageUrl = pyramidVisual?.image_url?.trim() || product.olfactory_diagram_url?.trim() || '';
 
   return (
     <main className="min-h-screen bg-brand-cream">
@@ -385,7 +407,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
         <div className="mt-32">
           <div className="flex border-b border-brand-black/5 mb-16 overflow-x-auto no-scrollbar justify-center">
-            {['description', 'profile olfactif', 'avis clients'].map((tab) => (
+            {['profile olfactif', 'avis clients'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -400,29 +422,6 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           </div>
 
           <div className="max-w-5xl mx-auto">
-            {activeTab === 'description' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-                <h3 className="text-3xl font-serif italic text-center mb-12">L&apos;Histoire de {displayName}</h3>
-                <p className="text-lg font-sans text-brand-black/70 leading-relaxed text-center italic">
-                  &quot;{product.story || displayDescription}&quot;
-                </p>
-                <div className="grid grid-cols-2 gap-12 pt-12">
-                  <div>
-                    <h4 className="text-[10px] uppercase tracking-widest text-brand-gold mb-4 font-bold">{t('product.usage', 'Conseils d\'utilisation')}</h4>
-                    <p className="text-sm font-sans text-brand-black/70 leading-relaxed">
-                      {t('product.usage_desc', 'Vaporisez sur les points de pulsation : poignets, creux du cou et derrière les oreilles.')}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-[10px] uppercase tracking-widest text-brand-gold mb-4 font-bold">{t('product.conservation', 'Conservation')}</h4>
-                    <p className="text-sm font-sans text-brand-black/70 leading-relaxed">
-                      {t('product.conservation_desc', 'Conservez votre flacon à l\'abri de la lumière directe et des variations de température.')}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
             {activeTab === 'profile olfactif' && (
               <OlfactoryProfile
                 diagramUrl={product.olfactory_diagram_url}
@@ -469,7 +468,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                               {t('review.login_required', 'Vous devez être connecté pour déposer un avis.')}
                            </p>
                            <button 
-                             onClick={() => window.location.href = '/login'}
+                             type="button"
+                             onClick={() => { window.location.href = '/auth/login'; }}
                              className="luxury-button w-full py-4 text-[10px]"
                            >
                               {t('auth.login', 'Se Connecter')}

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
+import { normalizeProductSlug } from '@/lib/product-slug';
 
 export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -40,7 +41,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
   }, [query, supabase]);
 
   const handleSelect = (slug: string) => {
-    router.push(`/produits/${slug}`);
+    router.push(`/produits/${normalizeProductSlug(slug)}`);
     onClose();
   };
 

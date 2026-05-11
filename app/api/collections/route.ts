@@ -7,6 +7,7 @@ import {
   resolvePublicSupabaseKeyForServer,
 } from '@/lib/supabase';
 import { fetchPublishedCollectionsCompat } from '@/lib/supabase-catalog-compat';
+import { pickStorefrontCollections } from '@/lib/catalog-quality';
 
 export const runtime = 'nodejs';
 
@@ -37,7 +38,8 @@ export async function GET() {
     return res;
   }
 
-  const res = NextResponse.json({ collections: data ?? [], error: null });
+  const storefront = pickStorefrontCollections((data ?? []) as { slug?: string }[]);
+  const res = NextResponse.json({ collections: storefront, error: null });
   res.headers.set('Cache-Control', 'public, max-age=120, s-maxage=300, stale-while-revalidate=600');
   return res;
 }

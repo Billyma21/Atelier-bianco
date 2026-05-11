@@ -3,10 +3,26 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isValidUrl, resolvePublicSupabaseKeyForServer } from '@/lib/supabase';
 
+function redirectLoginWithOAuthError(origin: string, message: string) {
+  const q = new URLSearchParams();
+  q.set('oauth_error', '1');
+  q.set('reason', message.slice(0, 500));
+  return NextResponse.redirect(`${origin}/auth/login?${q.toString()}`);
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/';
+  const next = searchParams.get('next') ?? '/mon-compte';
+
+  const oauthErr = searchParams.get('error');
+  const oauthErrDesc = searchParams.get('error_description');
+  if (oauthErr) {
+    return redirectLoginWithOAuthError(
+      origin,
+      oauthErrDesc || oauthErr
+    );
+  }
 
   if (code) {
     const cookieStore = await cookies();
@@ -33,8 +49,10 @@ export async function GET(request: Request) {
     });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const safeNext = next.startsWith('/') ? next : '/mon-compte';
+      return NextResponse.redirect(`${origin}${safeNext}`);
     }
+    return redirectLoginWithOAuthError(origin, error.message);
   }
 
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
