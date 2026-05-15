@@ -68,6 +68,18 @@ export const MAISON_HERO_LEAD_IT =
 export const WHY_SHORT_DESC_IT =
   'Perché alcune presenze segnano senza una parola? Perché alcuni ricordi non vogliono svanire? WHY è una fragranza costruita sull’ineffabile.';
 
+export const WHY_DESCRIPTION_IT = `${WHY_SHORT_DESC_IT}
+
+Una firma elegante, misteriosa e avvincente, pensata per lasciare una traccia più che un’impressione.`;
+
+export const MASAMVNE_SHORT_DESC_IT =
+  'Una lama silenziosa. Precisa, potente, controllata. MASAMVNE evoca l’eleganza di una lama perfettamente forgiata: una presenza netta, raffinata e pericolosamente avvincente.';
+
+export const MASAMVNE_DESCRIPTION_IT = `${MASAMVNE_SHORT_DESC_IT}
+
+Niente è eccessivo, tutto è sotto controllo.
+Una firma netta che cattura all’istante e attira complimenti con disarmante naturalezza.`;
+
 export const FOOTER_STORY_FR =
   'Maison de parfum indépendante née en Sicile : signatures précises, élégance méditerranéenne, extraits fabriqués en Italie.';
 

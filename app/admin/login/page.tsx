@@ -39,14 +39,18 @@ export default function AdminLoginPage() {
 
     try {
       // 1. Map credentials
-      let finalEmail = identifier;
+      let finalEmail = identifier.trim();
       let finalPassword = password;
 
-      if (identifier.trim().toUpperCase() === 'KENZY') {
-        finalEmail = 'admin@atelierbianco.internal';
-      }
-      if (password === '1190') {
-        finalPassword = 'Berkane1190';
+      if (process.env.NODE_ENV === 'development') {
+        if (finalEmail.toUpperCase() === 'KENZY') {
+          finalEmail = 'admin@atelierbianco.internal';
+        }
+        const devShort = process.env.NEXT_PUBLIC_ADMIN_DEV_SHORT_PASSWORD?.trim();
+        if (devShort && password === devShort) {
+          const mapped = process.env.ADMIN_BOOTSTRAP_DEV_PASSWORD?.trim();
+          if (mapped) finalPassword = mapped;
+        }
       }
 
       // 2. Bootstrap Admin (Ensure user exists and has role)

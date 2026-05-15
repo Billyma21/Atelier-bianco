@@ -65,7 +65,7 @@ export default function LaMaisonPage() {
     <main className="min-h-screen bg-brand-cream">
       <Header />
 
-      <section className="relative flex min-h-[72vh] items-center justify-center overflow-hidden pt-28">
+      <section className="relative flex min-h-[60dvh] items-center justify-center overflow-hidden pt-24 sm:min-h-[72vh] sm:pt-28">
         <div className="absolute inset-0 z-0">
           <Image
             src={DEFAULT_HERO_SECONDARY_IMAGE}
@@ -91,7 +91,7 @@ export default function LaMaisonPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="font-serif text-5xl italic text-brand-black md:text-7xl lg:text-8xl"
+            className="heading-display italic text-brand-black"
           >
             {t('maison.hero_title', 'Atelier Bianco')}
           </motion.h1>
@@ -124,7 +124,7 @@ export default function LaMaisonPage() {
         </div>
       </section>
 
-      <section className="border-t border-brand-black/5 py-24 px-6 md:px-12">
+      <section className="border-t border-brand-black/5 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-24">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-14 text-center font-serif text-3xl italic text-brand-black md:text-4xl">
             {t('maison.story_title', 'Une maison, une intention')}
@@ -145,7 +145,7 @@ export default function LaMaisonPage() {
         </div>
       </section>
 
-      <section className="border-t border-brand-black/5 bg-brand-black py-28 text-brand-cream px-6 md:px-12">
+      <section className="border-t border-brand-black/5 bg-brand-black px-4 py-20 text-brand-cream sm:px-6 sm:py-24 lg:px-12 lg:py-28">
         <div className="mx-auto max-w-screen-2xl">
           <h2 className="mb-16 text-center font-serif text-2xl italic text-brand-gold md:text-3xl">
             {t('maison.values_title', 'Ce qui nous guide')}

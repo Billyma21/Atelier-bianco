@@ -3,10 +3,15 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?: string) {
-  const email = requestedEmail || 'admin@atelierbianco.internal';
-  const password = requestedPassword || 'Berkane1190';
+  const email = requestedEmail?.trim();
+  const password = requestedPassword;
+  if (!email || !password) {
+    return { success: false, error: 'Email et mot de passe requis.' };
+  }
 
-  console.log('Bootstrapping admin for:', email);
+  const devLog = (...args: unknown[]) => {
+    if (process.env.NODE_ENV === 'development') console.log(...args);
+  };
 
   try {
     const supabaseAdmin = getSupabaseAdmin();
@@ -17,7 +22,7 @@ export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?
     let user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
     if (!user) {
-      console.log('User not found, creating...');
+      devLog('User not found, creating...');
       // 2. Create user if missing
       const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -41,7 +46,7 @@ export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?
 
     if (!user) throw new Error('Utilisateur admin introuvable.');
 
-    console.log('User ID:', user.id, 'Updating password and confirmation...');
+    devLog('User ID:', user.id, 'Updating password and confirmation...');
 
     // 3. Force confirm, set password AND set role in app_metadata
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -55,7 +60,7 @@ export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?
     if (updateError) throw updateError;
 
     // 4. Ensure profile exists and has admin role
-    console.log('Ensuring profile role is admin...');
+    devLog('Ensuring profile role is admin...');
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -80,7 +85,7 @@ export async function bootstrapAdmin(requestedEmail?: string, requestedPassword?
       if (updateProfileError) throw updateProfileError;
     }
 
-    console.log('Bootstrap completed successfully');
+    devLog('Bootstrap completed successfully');
     return { success: true };
   } catch (error: any) {
     console.error('Error bootstrapping admin:', error);

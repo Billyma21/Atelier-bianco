@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   isOauthProviderDisabledError,
   OAUTH_GOOGLE_DISABLED_MESSAGE,
@@ -24,6 +25,7 @@ function LoginForm() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const oauth = searchParams.get('oauth_error');
@@ -33,14 +35,14 @@ function LoginForm() {
         const decoded = decodeURIComponent(reason.replace(/\+/g, ' '));
         setError(
           isOauthProviderDisabledError(decoded)
-            ? OAUTH_GOOGLE_DISABLED_MESSAGE
+            ? t('auth.oauth_disabled_long', OAUTH_GOOGLE_DISABLED_MESSAGE)
             : decoded
         );
       } catch {
         setError(reason);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const handleGoogleLogin = async () => {
     setError(null);
@@ -55,14 +57,13 @@ function LoginForm() {
       if (oauthError) {
         setError(
           isOauthProviderDisabledError(oauthError.message)
-            ? OAUTH_GOOGLE_DISABLED_MESSAGE
+            ? t('auth.oauth_disabled_long', OAUTH_GOOGLE_DISABLED_MESSAGE)
             : oauthError.message
         );
         setGoogleLoading(false);
       }
-      // Succès : redirection navigateur vers Google / Supabase — ne pas setGoogleLoading(false)
     } catch {
-      setError("Impossible de démarrer la connexion Google. Réessayez ou utilisez l'email.");
+      setError(t('auth.google_start_error', "Impossible de démarrer la connexion Google. Réessayez ou utilisez l'email."));
       setGoogleLoading(false);
     }
   };
@@ -83,25 +84,22 @@ function LoginForm() {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
 
     if (profile?.role === 'admin') {
       router.push('/admin');
     } else {
       router.push('/mon-compte');
     }
+    setLoading(false);
   };
 
   return (
     <main className="min-h-screen bg-brand-cream">
       <Header />
-      <div className="flex items-center justify-center px-6 pb-20 pt-40">
-        <div className="w-full max-w-md border border-brand-black/5 bg-white p-10 shadow-sm">
-          <h1 className="mb-8 text-center font-serif text-3xl">Connexion Client</h1>
+      <div className="page-content flex min-h-[60dvh] items-center justify-center">
+        <div className="w-full max-w-md border border-brand-black/5 bg-white p-6 shadow-sm sm:p-10">
+          <h1 className="mb-8 text-center font-serif text-2xl sm:text-3xl">{t('auth.login_title', '')}</h1>
 
           {error && (
             <div className="mb-6 border border-red-100 bg-red-50 p-4 text-xs leading-relaxed text-red-600">{error}</div>
@@ -109,7 +107,7 @@ function LoginForm() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="mb-2 block font-sans text-[10px] uppercase tracking-widest">Email</label>
+              <label className="mb-2 block font-sans text-[10px] uppercase tracking-widest">{t('auth.email', 'E-mail')}</label>
               <input
                 type="email"
                 value={email}
@@ -119,7 +117,7 @@ function LoginForm() {
               />
             </div>
             <div>
-              <label className="mb-2 block font-sans text-[10px] uppercase tracking-widest">Mot de passe</label>
+              <label className="mb-2 block font-sans text-[10px] uppercase tracking-widest">{t('auth.password', '')}</label>
               <input
                 type="password"
                 value={password}
@@ -127,9 +125,17 @@ function LoginForm() {
                 className="luxury-input"
                 required
               />
+              <p className="mt-3 text-right">
+                <Link
+                  href="/auth/forgot-password"
+                  className="font-sans text-[10px] uppercase tracking-widest text-brand-black/45 hover:text-brand-gold"
+                >
+                  {t('auth.forgot_password', '')}
+                </Link>
+              </p>
             </div>
             <button type="submit" disabled={loading} className="luxury-button mt-4 w-full py-4 disabled:opacity-50">
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? t('auth.logging_in', '') : t('auth.sign_in_cta', '')}
             </button>
           </form>
 
@@ -137,7 +143,7 @@ function LoginForm() {
             <>
               <div className="mt-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-brand-black/10" />
-                <span className="text-[10px] uppercase tracking-widest text-brand-black/40">Ou</span>
+                <span className="text-[10px] uppercase tracking-widest text-brand-black/40">{t('auth.or', '')}</span>
                 <div className="h-px flex-1 bg-brand-black/10" />
               </div>
 
@@ -165,26 +171,21 @@ function LoginForm() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {googleLoading ? 'Redirection…' : 'Continuer avec Google'}
+                {googleLoading ? t('auth.redirecting', '') : t('auth.signin_google', '')}
               </button>
 
-              <p className="mt-4 text-center text-[10px] leading-relaxed text-brand-black/45">
-                Si une page affiche du texte JSON avec « provider is not enabled », activez Google dans Supabase :
-                Authentication → Providers → Google (Client ID + Secret depuis Google Cloud Console).
-              </p>
+              <p className="mt-4 text-center text-[10px] leading-relaxed text-brand-black/45">{t('auth.supabase_google_hint', '')}</p>
             </>
           )}
           {!SHOW_GOOGLE && (
-            <p className="mt-6 text-center text-[10px] text-brand-black/40">
-              Connexion Google désactivée (NEXT_PUBLIC_HIDE_GOOGLE_OAUTH).
-            </p>
+            <p className="mt-6 text-center text-[10px] text-brand-black/40">{t('auth.google_disabled_env', '')}</p>
           )}
 
           <div className="mt-8 text-center">
             <p className="font-sans text-xs text-brand-black/40">
-              Pas encore de compte ?{' '}
+              {t('auth.no_account', '')}{' '}
               <Link href="/auth/register" className="text-brand-gold hover:underline">
-                S&apos;inscrire
+                {t('auth.create_account', '')}
               </Link>
             </p>
           </div>
@@ -195,14 +196,21 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+function LoginPageInner() {
+  const { t } = useLanguage();
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-brand-cream pt-40 text-center font-serif text-brand-black/50">Chargement…</div>
+        <div className="min-h-screen bg-brand-cream pt-40 text-center font-serif text-brand-black/50">
+          {t('common.loading_short', '')}
+        </div>
       }
     >
       <LoginForm />
     </Suspense>
   );
+}
+
+export default function LoginPage() {
+  return <LoginPageInner />;
 }

@@ -40,7 +40,7 @@ export default function FAQPage() {
     <main className="min-h-screen bg-brand-cream">
       <Header />
       
-      <div className="pt-40 pb-32 px-6">
+      <div className="page-content">
         <div className="max-w-4xl mx-auto text-center mb-24">
            <motion.div 
              initial={{ opacity: 0, y: 20 }}

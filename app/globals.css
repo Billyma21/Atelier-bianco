@@ -30,13 +30,91 @@
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Hauteur réservée sous le header fixe (+ safe area gérée dans .page-content) */
+:root {
+  /* Mobile : barre logo+actions + rangée liens (plus de menu burger) */
+  --site-header-h: 6.5rem;
+  --site-announcement-h: 0px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --site-header-h: 4.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --site-header-h: 4.5rem;
+  }
+}
+
+body:has([data-announcement='true']) {
+  --site-announcement-h: 2rem;
+}
+
+@layer utilities {
+  .page-content {
+    padding-top: calc(var(--site-header-h) + var(--site-announcement-h) + env(safe-area-inset-top, 0px) + 1.25rem);
+    padding-bottom: max(4rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (min-width: 640px) {
+    .page-content {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-content {
+      padding-top: calc(var(--site-header-h) + var(--site-announcement-h) + env(safe-area-inset-top, 0px) + 2.5rem);
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
+  }
+
+  .heading-display {
+    @apply font-serif tracking-tight text-4xl sm:text-5xl md:text-6xl lg:text-7xl;
+  }
+
+  .heading-page {
+    @apply font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  .touch-target {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center;
+  }
+
+  .admin-table-wrap {
+    @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
   }
 }
 
 .luxury-button {
-  @apply relative overflow-hidden px-8 py-3 bg-brand-black text-brand-cream font-sans tracking-widest uppercase text-xs transition-all duration-500 hover:bg-brand-gold;
+  @apply relative inline-flex min-h-12 items-center justify-center overflow-hidden px-6 py-3.5 sm:px-8 sm:py-3 bg-brand-black text-brand-cream font-sans tracking-widest uppercase text-xs transition-all duration-500 hover:bg-brand-gold active:scale-[0.98];
 }
 
 .luxury-input {

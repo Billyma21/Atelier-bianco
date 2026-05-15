@@ -10,22 +10,8 @@ export type HeroBadge = {
   slot: HeroBadgeSlot;
 };
 
-export const DEFAULT_HERO_BADGES: HeroBadge[] = [
-  {
-    id: 'default-light',
-    variant: 'light',
-    label: 'Concentration',
-    text: 'Extrait',
-    slot: 'top-right',
-  },
-  {
-    id: 'default-dark',
-    variant: 'dark',
-    label: 'Notes de Coeur',
-    text: 'Iris de Florence',
-    slot: 'bottom-left',
-  },
-];
+/** Par défaut : aucune pastille flottante (évite le doublon « Concentration / Extrait » sur le packshot). */
+export const DEFAULT_HERO_BADGES: HeroBadge[] = [];
 
 /** Packshot studio (hero colonne droite par défaut). */
 export const DEFAULT_HERO_PRODUCT_IMAGE = '/images/hero-why-studio.png';
@@ -44,7 +30,7 @@ function migrateLegacyBadgeCopy(b: HeroBadge): HeroBadge {
 
 export function normalizeHeroBadges(raw: unknown): HeroBadge[] {
   if (!Array.isArray(raw) || raw.length === 0) {
-    return DEFAULT_HERO_BADGES.map(migrateLegacyBadgeCopy).map(finalizeConcentrationBadge);
+    return [];
   }
   const out: HeroBadge[] = [];
   for (const item of raw) {

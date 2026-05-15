@@ -34,9 +34,9 @@ import { formatPrice, cn } from '@/lib/utils';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState([
-    { name: 'Chiffre d\'Affaires', value: '0 €', change: '+0%', icon: TrendingUp, positive: true },
-    { name: 'Commandes', value: '0', change: '+0%', icon: ShoppingCart, positive: true },
-    { name: 'Clients', value: '0', change: '+0%', icon: Users, positive: true },
+    { name: 'Chiffre d\'Affaires', value: '0 €', change: '', icon: TrendingUp, positive: true },
+    { name: 'Commandes', value: '0', change: '', icon: ShoppingCart, positive: true },
+    { name: 'Clients', value: '0', change: '', icon: Users, positive: true },
     { name: 'Stock Critique', value: '0', change: 'Alertes', icon: Package, positive: false },
   ]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
               product_id: newProd.id,
               size_ml: 100,
               price: 185,
-              stock: 50
+              stock: 0
             });
             // Add an image
             await supabase.from('product_images').insert({
@@ -116,9 +116,9 @@ export default function AdminDashboard() {
           .lt('stock', 5);
 
         setStats([
-          { name: 'Chiffre d\'Affaires', value: formatPrice(totalSales), change: '+12.5%', icon: TrendingUp, positive: true },
-          { name: 'Commandes', value: totalOrders.toString(), change: '+8.2%', icon: ShoppingCart, positive: true },
-          { name: 'Clients', value: (clientCount || 0).toString(), change: '+5.4%', icon: Users, positive: true },
+          { name: 'Chiffre d\'Affaires', value: formatPrice(totalSales), change: '', icon: TrendingUp, positive: true },
+          { name: 'Commandes', value: totalOrders.toString(), change: '', icon: ShoppingCart, positive: true },
+          { name: 'Clients', value: (clientCount || 0).toString(), change: '', icon: Users, positive: true },
           { name: 'Stock Critique', value: (lowStockCount || 0).toString(), change: 'Alertes', icon: Package, positive: false },
         ]);
 
@@ -192,13 +192,21 @@ export default function AdminDashboard() {
               <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-brand-gold/10 transition-colors">
                 <stat.icon size={20} className="text-gray-400 group-hover:text-brand-gold transition-colors" />
               </div>
-              <div className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold tracking-wider",
-                stat.positive ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-              )}>
-                {stat.change}
-                {stat.positive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-              </div>
+              {stat.change ? (
+                <div
+                  className={cn(
+                    'flex items-center gap-1 rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider',
+                    stat.positive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                  )}
+                >
+                  {stat.change}
+                  {stat.name === 'Stock Critique' ? null : stat.positive ? (
+                    <ArrowUpRight size={10} />
+                  ) : (
+                    <ArrowDownRight size={10} />
+                  )}
+                </div>
+              ) : null}
             </div>
             <h3 className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2 font-bold">{stat.name}</h3>
             <p className="text-3xl font-serif font-medium">{stat.value}</p>

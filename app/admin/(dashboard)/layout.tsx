@@ -21,11 +21,12 @@ import {
   Search,
   Megaphone,
   User as UserIcon,
-  ExternalLink,
   Globe,
   MessageSquare,
   HelpCircle,
-  Languages
+  Languages,
+  Menu,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [status, setStatus] = useState('Initialisation...');
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const isCheckingRef = React.useRef(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -81,7 +83,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       // 1. Check hardcoded admin (User Email)
-      if (session.user.email === 'bilyma21@gmail.com') {
+      const adminEmail = session.user.email?.toLowerCase() ?? '';
+      if (
+        adminEmail === 'kenzy@ab.be' ||
+        adminEmail === 'bilyma21@gmail.com' ||
+        (process.env.NEXT_PUBLIC_ADMIN_BOOTSTRAP_EMAIL &&
+          adminEmail === process.env.NEXT_PUBLIC_ADMIN_BOOTSTRAP_EMAIL.toLowerCase())
+      ) {
         setIsAdmin(true);
         return;
       }
@@ -136,6 +144,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkAdmin();
   }, [checkAdmin]);
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   if (error) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-[#FDFCFB] p-10 text-center font-sans">
@@ -183,15 +195,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FDFCFB] text-gray-900 font-sans">
-      {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-gray-100 flex flex-col fixed h-full z-30">
-        <div className="p-10">
-          <h1 className="text-2xl font-logo tracking-widest capitalize text-brand-black">Atelier Bianco</h1>
-          <p className="text-[8px] uppercase tracking-[0.4em] text-brand-gold mt-2 font-bold">Administration</p>
+    <div className="flex min-h-screen bg-[#FDFCFB] font-sans text-gray-900">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          aria-label="Fermer le menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={cn(
+          'fixed z-50 flex h-full w-[min(100vw,18rem)] flex-col border-r border-gray-100 bg-white transition-transform duration-300 lg:w-72 lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        )}
+      >
+        <div className="flex items-start justify-between gap-3 p-6 lg:p-10">
+          <div>
+            <h1 className="font-logo text-xl capitalize tracking-widest text-brand-black lg:text-2xl">Atelier Bianco</h1>
+            <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.4em] text-brand-gold">Administration</p>
+          </div>
+          <button
+            type="button"
+            className="touch-target rounded-full p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
+            aria-label="Fermer le menu"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="flex-1 px-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
           {menuItems.map((item) => {
             const isActive = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
             return (
@@ -251,11 +286,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 ml-72 flex flex-col min-h-screen">
+      <div className="flex min-h-screen flex-1 flex-col lg:ml-72">
         {/* Top Header */}
-        <header className="h-24 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-20 px-12 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">
+        <header className="sticky top-0 z-20 flex h-16 min-h-[4rem] items-center justify-between border-b border-gray-100 bg-white/80 px-4 backdrop-blur-md sm:px-6 lg:h-24 lg:px-12">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+            <button
+              type="button"
+              className="touch-target rounded-full p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
+              aria-label="Ouvrir le menu"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={22} />
+            </button>
+            <div className="flex min-w-0 items-center gap-2 truncate text-[8px] font-bold uppercase tracking-[0.15em] text-gray-400 sm:text-[9px] sm:tracking-[0.2em]">
               <Link href="/admin" className="hover:text-gray-900 transition-colors">Admin</Link>
               <ChevronRight size={10} />
               <span className="text-gray-900">{currentMenuItem?.name || 'Dashboard'}</span>
@@ -278,11 +321,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="p-12 flex-1">
+        <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-12">
           {children}
         </main>
 
-        <footer className="px-12 py-8 border-t border-gray-100 text-center">
+        <footer className="border-t border-gray-100 px-4 py-6 text-center sm:px-12 sm:py-8">
           <p className="text-[9px] text-gray-300 uppercase tracking-[0.4em]">
             &copy; 2024 Atelier Bianco &mdash; Système de Gestion de Luxe
           </p>

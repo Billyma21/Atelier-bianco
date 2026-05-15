@@ -35,6 +35,12 @@ type FooterCollection = { id: string; name: string; name_it?: string | null; slu
 export default function Footer() {
   const { t, language } = useLanguage();
   const [collections, setCollections] = useState<FooterCollection[]>([]);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+
+  const socialInstagram = process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL?.trim();
+  const socialFacebook = process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL?.trim();
+  const socialX = process.env.NEXT_PUBLIC_SOCIAL_X_URL?.trim();
 
   useEffect(() => {
     let cancelled = false;
@@ -50,8 +56,8 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-brand-black text-brand-cream pt-20 pb-10 px-6 md:px-12">
-      <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+    <footer className="bg-brand-black px-4 pb-10 pt-16 text-brand-cream sm:px-6 sm:pt-20 lg:px-12">
+      <div className="mx-auto mb-16 grid max-w-screen-2xl grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-12 lg:mb-20 lg:grid-cols-4">
         {/* Brand Story */}
         <div className="md:col-span-1">
           <h2 className="text-2xl font-logo tracking-widest capitalize mb-6 text-brand-cream">Atelier Bianco</h2>
@@ -102,34 +108,103 @@ export default function Footer() {
           <p className="text-sm font-sans text-brand-cream/60 mb-6">
             {t('footer.newsletter_desc', 'Inscrivez-vous pour recevoir nos actualités et invitations exclusives.')}
           </p>
-          <form className="flex border-b border-brand-cream/20 pb-2">
+          <form
+            className="flex flex-col gap-3 border-b border-brand-cream/20 pb-2 sm:flex-row sm:items-end sm:gap-4"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const email = newsletterEmail.trim();
+              if (!email) return;
+              setNewsletterStatus('loading');
+              try {
+                const res = await fetch('/api/newsletter', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, language }),
+                });
+                setNewsletterStatus(res.ok ? 'ok' : 'error');
+                if (res.ok) setNewsletterEmail('');
+              } catch {
+                setNewsletterStatus('error');
+              }
+            }}
+          >
             <input
               type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
               placeholder={t('footer.email_placeholder', 'Votre email')}
               className="bg-transparent border-none outline-none text-sm w-full font-sans"
+              required
+              aria-label={t('footer.email_placeholder', 'Votre email')}
             />
-            <button type="submit" className="text-[10px] uppercase tracking-widest font-sans hover:text-brand-gold transition-colors">
-              {t('footer.subscribe', 'S\'inscrire')}
+            <button
+              type="submit"
+              disabled={newsletterStatus === 'loading'}
+              className="text-[10px] uppercase tracking-widest font-sans hover:text-brand-gold transition-colors disabled:opacity-50"
+            >
+              {newsletterStatus === 'loading'
+                ? '…'
+                : t('footer.subscribe', "S'inscrire")}
             </button>
           </form>
+          {newsletterStatus === 'ok' && (
+            <p className="mt-3 text-xs text-brand-gold" role="status">
+              {t('footer.newsletter_success', 'Merci pour votre inscription.')}
+            </p>
+          )}
+          {newsletterStatus === 'error' && (
+            <p className="mt-3 text-xs text-red-300" role="alert">
+              {t('footer.newsletter_error', 'Inscription impossible pour le moment.')}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-screen-2xl mx-auto pt-10 border-t border-brand-cream/10 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex space-x-6">
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="Instagram"><IconInstagram /></a>
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="Facebook"><IconFacebook /></a>
-          <a href="#" className="text-brand-cream/40 hover:text-brand-gold transition-colors" aria-label="X (Twitter)"><IconTwitterX /></a>
+      <div className="mx-auto flex max-w-screen-2xl flex-col items-center gap-6 border-t border-brand-cream/10 px-2 pt-10 text-center md:flex-row md:justify-between md:text-left">
+        <div className="flex justify-center space-x-6 md:justify-start">
+          {socialInstagram ? (
+            <a
+              href={socialInstagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-cream/40 transition-colors hover:text-brand-gold"
+              aria-label="Instagram"
+            >
+              <IconInstagram />
+            </a>
+          ) : null}
+          {socialFacebook ? (
+            <a
+              href={socialFacebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-cream/40 transition-colors hover:text-brand-gold"
+              aria-label="Facebook"
+            >
+              <IconFacebook />
+            </a>
+          ) : null}
+          {socialX ? (
+            <a
+              href={socialX}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-cream/40 transition-colors hover:text-brand-gold"
+              aria-label="X (Twitter)"
+            >
+              <IconTwitterX />
+            </a>
+          ) : null}
         </div>
         
-        <div className="text-[10px] uppercase tracking-widest font-sans text-brand-cream/40 flex space-x-8">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 font-sans text-[10px] uppercase tracking-widest text-brand-cream/40 md:justify-start">
           <Link href="/mentions-legales" className="hover:text-brand-gold transition-colors">{t('footer.legal', 'Mentions Légales')}</Link>
           <Link href="/cgv" className="hover:text-brand-gold transition-colors">{t('footer.terms', 'CGV')}</Link>
           <Link href="/confidentialite" className="hover:text-brand-gold transition-colors">{t('footer.privacy', 'Confidentialité')}</Link>
         </div>
 
         <p className="text-[10px] uppercase tracking-widest font-sans text-brand-cream/20">
-          © {new Date().getFullYear()} Atelier Bianco. Tous droits réservés.
+          © {new Date().getFullYear()} Atelier Bianco. {t('footer.rights', 'Tous droits réservés.')}
         </p>
         
         <Link href="/admin/login" className="text-[8px] uppercase tracking-[0.4em] text-brand-cream/5 hover:text-brand-gold transition-colors">

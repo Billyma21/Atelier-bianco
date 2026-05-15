@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -94,6 +95,27 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: updError.message }, { status: 500 });
       }
 
+      const { data: orderRow } = await admin
+        .from('orders')
+        .select('total, shipping_address')
+        .eq('id', orderId)
+        .maybeSingle();
+
+      const ship = orderRow?.shipping_address as { email?: string; locale?: string } | null;
+      const customerEmail =
+        session.customer_details?.email?.trim() ||
+        session.customer_email?.trim() ||
+        ship?.email?.trim();
+
+      if (customerEmail && orderRow?.total != null) {
+        const locale = ship?.locale === 'it' ? 'it' : 'fr';
+        await sendOrderConfirmationEmail({
+          to: customerEmail,
+          orderId,
+          total: Number(orderRow.total),
+          locale,
+        });
+      }
     }
 
     if (event.type === 'checkout.session.expired') {

@@ -20,13 +20,11 @@ import {
   sortSignatureShowcaseProducts,
 } from '@/lib/catalog-quality';
 import { getHomeShowcaseFallbackProducts } from '@/lib/home-showcase-fallback';
-import { FEATURED_COLLECTION_DESC_FR, MAISON_BRIEF_FR } from '@/lib/brand-copy';
 
 const FALLBACK_FEATURED_COLLECTION = {
   name: 'Alter Egos',
   name_it: 'Alter Egos',
   slug: 'alter-egos',
-  description: FEATURED_COLLECTION_DESC_FR,
   image_url: '/images/why-packshot-hero.png',
 };
 
@@ -34,7 +32,7 @@ export default function HomePage() {
   const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [homeContent, setHomeContent] = useState<any>(null);
   const [activeCollections, setActiveCollections] = useState<any[]>([]);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const supabase = createClient();
 
   useEffect(() => {
@@ -127,7 +125,6 @@ export default function HomePage() {
       ...FALLBACK_FEATURED_COLLECTION,
       ...row,
       image_url: row.image_url || FALLBACK_FEATURED_COLLECTION.image_url,
-      description: row.description ?? FALLBACK_FEATURED_COLLECTION.description,
     };
   }, [activeCollections]);
 
@@ -147,14 +144,16 @@ export default function HomePage() {
         <div className="flex animate-marquee space-x-12">
           {[...Array(10)].map((_, i) => (
             <span key={i} className="text-[10px] uppercase tracking-[0.3em] font-sans">
-              {homeContent?.promo_banner || "Livraison offerte dès 150€ d'achat • 2 échantillons offerts pour toute commande • Atelier Bianco"}
+              {language === 'it'
+                ? homeContent?.promo_banner_it?.trim() || t('home.promo_banner')
+                : homeContent?.promo_banner?.trim() || t('home.promo_banner')}
             </span>
           ))}
         </div>
       </div>
 
       {/* Storytelling Section */}
-      <section className="py-32 px-6 md:px-12 max-w-screen-2xl mx-auto">
+      <section className="mx-auto max-w-screen-2xl px-4 py-20 sm:px-6 sm:py-28 lg:px-12 lg:py-32">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -164,14 +163,19 @@ export default function HomePage() {
           >
             <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-8 block">{t('home.story_label', "L'Art de l'Olfaction")}</span>
             <h2 className="text-4xl md:text-6xl font-serif mb-10 leading-tight">
-              {homeContent?.story_title || (
+              {(language === 'it' ? homeContent?.story_title_it : homeContent?.story_title)?.trim() ? (
+                <>{(language === 'it' ? homeContent?.story_title_it : homeContent?.story_title) as string}</>
+              ) : (
                 <>
-                  {t('home.story_title_1', 'Une Maison de')} <br /> <span className="italic">{t('home.story_title_2', 'Haute Parfumerie')}</span>
+                  {t('home.story_title_1', 'Une Maison de')} <br />{' '}
+                  <span className="italic">{t('home.story_title_2', 'Haute Parfumerie')}</span>
                 </>
               )}
             </h2>
             <p className="text-brand-black/70 font-sans text-base leading-relaxed mb-10 max-w-lg">
-              {homeContent?.story_text || t('home.story_desc', MAISON_BRIEF_FR)}
+              {language === 'it'
+                ? homeContent?.story_text_it?.trim() || t('home.story_desc')
+                : homeContent?.story_text?.trim() || t('home.story_desc')}
             </p>
             <Link href="/la-maison" className="text-[10px] uppercase tracking-widest font-sans border-b border-brand-black/20 pb-2 hover:border-brand-gold hover:text-brand-gold transition-all">
               {t('home.story_cta', 'Découvrir notre univers')}
@@ -187,7 +191,11 @@ export default function HomePage() {
           >
             <Image
               src={storyImageSrc}
-              alt={homeContent?.hero_image_alt || 'WHY — Extrait de Parfum Atelier Bianco'}
+              alt={
+                language === 'it'
+                  ? homeContent?.hero_image_alt_it?.trim() || t('home.hero_image_alt')
+                  : homeContent?.hero_image_alt?.trim() || t('home.hero_image_alt')
+              }
               fill
               className="object-cover object-center"
               sizes="(max-width: 768px) 100vw, 50vw"

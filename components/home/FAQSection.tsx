@@ -76,7 +76,7 @@ export default function FAQSection() {
   return (
     <section
       id="faq-accueil"
-      className="py-20 md:py-32 px-6 md:px-12 bg-white/50 border-t border-brand-black/5 scroll-mt-28"
+      className="scroll-mt-28 border-t border-brand-black/5 bg-white/50 px-4 py-16 sm:px-6 sm:py-20 md:py-32 lg:px-12"
     >
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-20">
@@ -110,7 +110,7 @@ export default function FAQSection() {
                 className="w-full text-left p-8 flex items-center justify-between transition-colors"
               >
                 <span className="text-lg font-serif group-hover:text-brand-gold transition-colors pr-4">
-                  {language === 'it' ? faq.question_it : faq.question_fr}
+                  {(language === 'it' ? faq.question_it : faq.question_fr)?.trim() || t('faq.locale_content_pending')}
                 </span>
                 <div
                   className={cn(
@@ -132,7 +132,7 @@ export default function FAQSection() {
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                   >
                     <div className="px-8 pb-8 text-brand-black/60 font-sans leading-relaxed text-base border-t border-brand-black/5 pt-6 mx-8 mt-2">
-                      {language === 'it' ? faq.answer_it : faq.answer_fr}
+                      {(language === 'it' ? faq.answer_it : faq.answer_fr)?.trim() || t('faq.locale_content_pending')}
                     </div>
                   </motion.div>
                 )}

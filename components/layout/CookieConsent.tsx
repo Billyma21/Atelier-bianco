@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 const STORAGE_KEY = 'atelier-bianco-cookie-consent';
 
 export default function CookieConsent() {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     try {
@@ -40,14 +42,15 @@ export default function CookieConsent() {
       <div className="mx-auto flex max-w-screen-xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl space-y-3">
           <p id="cookie-consent-title" className="font-serif text-lg text-brand-black">
-            Respect de votre vie privée
+            {t('cookie.title', 'Respect de votre vie privée')}
           </p>
           <p className="text-sm leading-relaxed text-brand-black/65">
-            Nous utilisons des cookies strictement nécessaires au fonctionnement du site (panier, session) et,
-            avec votre accord, des mesures d&apos;audience anonymisées pour perfectionner votre expérience.
-            Consultez notre{' '}
+            {t(
+              'cookie.body',
+              'Nous utilisons des cookies strictement nécessaires au fonctionnement du site (panier, session) et, avec votre accord, des mesures d\'audience anonymisées pour perfectionner votre expérience. Consultez notre'
+            )}{' '}
             <Link href="/confidentialite" className="border-b border-brand-gold/40 text-brand-black hover:text-brand-gold">
-              politique de confidentialité
+              {t('cookie.privacy_mid', 'politique de confidentialité')}
             </Link>
             .
           </p>
@@ -58,14 +61,14 @@ export default function CookieConsent() {
             onClick={() => persist('essential')}
             className="border border-brand-black/15 px-6 py-3 text-[10px] uppercase tracking-[0.2em] text-brand-black/70 transition-colors hover:border-brand-gold hover:text-brand-black"
           >
-            Essentiels uniquement
+            {t('cookie.essential', 'Essentiels uniquement')}
           </button>
           <button
             type="button"
             onClick={() => persist('all')}
             className="bg-brand-black px-8 py-3 text-[10px] uppercase tracking-[0.25em] text-brand-cream transition-colors hover:bg-brand-gold hover:text-white"
           >
-            Accepter
+            {t('cookie.accept', 'Accepter')}
           </button>
         </div>
       </div>

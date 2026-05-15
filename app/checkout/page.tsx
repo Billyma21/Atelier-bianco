@@ -17,7 +17,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
@@ -46,15 +46,12 @@ export default function CheckoutPage() {
     }
 
     if (step === 2 && !acceptCGV) {
-      useToast.getState().show(
-        'Veuillez accepter les conditions générales de vente pour finaliser votre commande.',
-        'error'
-      );
+      useToast.getState().show(t('checkout.accept_cgv_toast', 'Veuillez accepter les conditions générales de vente pour finaliser votre commande.'), 'error');
       return;
     }
 
     if (step === 2 && total <= 0) {
-      useToast.getState().show('Le montant de la commande est invalide.', 'error');
+      useToast.getState().show(t('checkout.invalid_total', 'Le montant de la commande est invalide.'), 'error');
       return;
     }
 
@@ -71,6 +68,7 @@ export default function CheckoutPage() {
           total,
           shipping: formData,
           userId: user?.id ?? null,
+          locale: language,
         }),
       });
       const createPayload = await createRes.json().catch(() => ({}));
@@ -78,15 +76,17 @@ export default function CheckoutPage() {
       if (!createRes.ok || !createPayload?.orderId) {
         const hint =
           createPayload?.error === 'server_misconfigured'
-            ? createPayload.message ||
-              'Côté serveur : ajoutez NEXT_PUBLIC_SUPABASE_URL (URL du projet) et SUPABASE_SERVICE_ROLE_KEY.'
+            ? createPayload.message || t('checkout.api.server_misconfigured', '')
             : createPayload?.message ||
               (createRes.status >= 500
-                ? 'Le serveur ne peut pas enregistrer la commande. Vérifiez les variables d’environnement sur l’hébergement.'
-                : 'Impossible d’enregistrer la commande.');
+                ? t(
+                    'checkout.order_error_server',
+                    'Le serveur ne peut pas enregistrer la commande. Vérifiez les variables d’environnement sur l’hébergement.'
+                  )
+                : t('checkout.order_error_generic', 'Impossible d’enregistrer la commande.'));
         if (!isSupabaseBrowserConfigured()) {
           useToast.getState().show(
-            `${hint} (côté navigateur : URL Supabase + clé anon ou publishable semblent absents ou invalides.)`,
+            `${hint} ${t('checkout.browser_supabase_hint', '')}`,
             'error'
           );
         } else {
@@ -100,10 +100,7 @@ export default function CheckoutPage() {
 
       const skipStripe = process.env.NEXT_PUBLIC_DEV_SKIP_STRIPE === 'true';
       if (skipStripe) {
-        useToast.getState().show(
-          'Mode développement : redirection sans Stripe (NEXT_PUBLIC_DEV_SKIP_STRIPE).',
-          'success'
-        );
+        useToast.getState().show(t('checkout.dev_skip_stripe', 'Mode développement : redirection sans Stripe (NEXT_PUBLIC_DEV_SKIP_STRIPE).'), 'success');
         clearCart();
         router.push(`/confirmation/${orderId}`);
         setLoading(false);
@@ -120,11 +117,11 @@ export default function CheckoutPage() {
       if (!res.ok || !payload?.url) {
         const hint =
           payload?.error === 'stripe_not_configured'
-            ? 'Ajoutez STRIPE_SECRET_KEY dans .env.local.'
+            ? t('checkout.stripe_key_hint', 'Ajoutez STRIPE_SECRET_KEY dans .env.local.')
             : payload?.error === 'server_misconfigured'
-              ? 'Ajoutez SUPABASE_SERVICE_ROLE_KEY (serveur) pour finaliser le paiement.'
+              ? t('checkout.service_role_hint', 'Ajoutez SUPABASE_SERVICE_ROLE_KEY (serveur) pour finaliser le paiement.')
               : payload?.message ||
-                'Impossible d\'ouvrir la page de paiement. Vérifiez Stripe et les clés serveur.';
+                t('checkout.payment_page_error', 'Impossible d\'ouvrir la page de paiement. Vérifiez Stripe et les clés serveur.');
         useToast.getState().show(hint, 'error');
         setLoading(false);
         return;
@@ -133,10 +130,7 @@ export default function CheckoutPage() {
       window.location.href = payload.url as string;
     } catch (err: any) {
       console.error('Order creation error:', err);
-      useToast.getState().show(
-        err.message || 'Une erreur est survenue lors de la commande. Veuillez réessayer.',
-        'error'
-      );
+      useToast.getState().show(err.message || t('checkout.fatal_error', 'Une erreur est survenue lors de la commande. Veuillez réessayer.'), 'error');
       setLoading(false);
     }
   };
@@ -145,9 +139,11 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-brand-cream">
         <Header />
-        <div className="pt-40 pb-20 px-6 text-center">
-          <h1 className="text-3xl font-serif mb-6">Votre panier est vide</h1>
-          <Link href="/parfums" className="luxury-button inline-block px-12 py-4">Découvrir nos créations</Link>
+        <div className="page-content text-center">
+          <h1 className="text-3xl font-serif mb-6">{t('checkout.empty_cart_title', 'Votre panier est vide')}</h1>
+          <Link href="/parfums" className="luxury-button inline-block px-12 py-4">
+            {t('cart.discover_cta', 'Découvrir nos créations')}
+          </Link>
         </div>
         <Footer />
       </main>
@@ -158,20 +154,20 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-[#FDFCFB]">
       <Header />
       
-      <div className="pt-32 pb-20 px-6 md:px-12 max-w-screen-xl mx-auto">
+      <div className="page-content max-w-screen-xl mx-auto">
         {/* Progress Stepper */}
-        <div className="flex items-center justify-center mb-16">
-          <div className="flex items-center gap-4">
+        <div className="mb-10 sm:mb-16">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
             <div className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-500",
+              "flex items-center justify-center gap-2 rounded-full px-4 py-3 transition-all duration-500 sm:py-2",
               step >= 1 ? "bg-brand-black text-white" : "bg-gray-100 text-gray-400"
             )}>
               <span className="text-[10px] font-bold">01</span>
               <span className="text-[10px] uppercase tracking-[0.2em] font-medium">{t('checkout.step_info', 'Informations')}</span>
             </div>
-            <div className="w-12 h-[1px] bg-gray-200" />
+            <div className="hidden h-px w-12 bg-gray-200 sm:block" />
             <div className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-500",
+              "flex items-center justify-center gap-2 rounded-full px-4 py-3 transition-all duration-500 sm:py-2",
               step >= 2 ? "bg-brand-black text-white" : "bg-gray-100 text-gray-400"
             )}>
               <span className="text-[10px] font-bold">02</span>
@@ -180,7 +176,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-16">
           
           {/* Left: Form */}
           <div className="lg:col-span-7">
@@ -201,10 +197,12 @@ export default function CheckoutPage() {
                       </div>
                       <div className="space-y-4">
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Adresse Email</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.email', 'Adresse e-mail')}
+                          </span>
                           <input 
                             type="email" 
-                            placeholder="votre@email.com" 
+                            placeholder={t('checkout.email_ph', 'votre@email.com')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.email}
@@ -212,10 +210,12 @@ export default function CheckoutPage() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Numéro de téléphone</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.phone', 'Numéro de téléphone')}
+                          </span>
                           <input 
                             type="tel" 
-                            placeholder="+32 000 00 00 00" 
+                            placeholder={t('checkout.phone_ph', '+32 000 00 00 00')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.phone}
@@ -226,13 +226,17 @@ export default function CheckoutPage() {
                     </section>
 
                     <section>
-                      <h2 className="text-2xl font-serif mb-8 border-b border-gray-100 pb-4">Adresse de livraison</h2>
-                      <div className="grid grid-cols-2 gap-6 mb-6">
+                      <h2 className="text-2xl font-serif mb-8 border-b border-gray-100 pb-4">
+                        {t('checkout.shipping_address', 'Adresse de livraison')}
+                      </h2>
+                      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 sm:gap-6">
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Prénom</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.first_name', 'Prénom')}
+                          </span>
                           <input 
                             type="text" 
-                            placeholder="Jean" 
+                            placeholder={t('checkout.first_ph', 'Jean')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.firstName}
@@ -240,10 +244,12 @@ export default function CheckoutPage() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Nom</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.last_name', 'Nom')}
+                          </span>
                           <input 
                             type="text" 
-                            placeholder="Dupont" 
+                            placeholder={t('checkout.last_ph', 'Dupont')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.lastName}
@@ -252,22 +258,26 @@ export default function CheckoutPage() {
                         </label>
                       </div>
                       <label className="block mb-6">
-                        <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Adresse</span>
+                        <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                          {t('checkout.address', 'Adresse')}
+                        </span>
                         <input 
                           type="text" 
-                          placeholder="123 Rue de la Paix" 
+                          placeholder={t('checkout.address_ph', '123 rue de la Paix')} 
                           required
                           className="luxury-input w-full bg-white"
                           value={formData.address}
                           onChange={(e) => setFormData({...formData, address: e.target.value})}
                         />
                       </label>
-                      <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 sm:gap-6">
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Code postal</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.postal', 'Code postal')}
+                          </span>
                           <input 
                             type="text" 
-                            placeholder="1000" 
+                            placeholder={t('checkout.postal_ph', '1000')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.postalCode}
@@ -275,10 +285,12 @@ export default function CheckoutPage() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Ville</span>
+                          <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                            {t('checkout.city', 'Ville')}
+                          </span>
                           <input 
                             type="text" 
-                            placeholder="Bruxelles" 
+                            placeholder={t('checkout.city_ph', 'Bruxelles')} 
                             required
                             className="luxury-input w-full bg-white"
                             value={formData.city}
@@ -287,16 +299,18 @@ export default function CheckoutPage() {
                         </label>
                       </div>
                       <label className="block">
-                        <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">Pays</span>
+                        <span className="text-[9px] uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                          {t('checkout.country', 'Pays')}
+                        </span>
                         <select 
                           className="luxury-input w-full bg-white appearance-none"
                           value={formData.country}
                           onChange={(e) => setFormData({...formData, country: e.target.value})}
                         >
-                          <option>Belgique</option>
-                          <option>France</option>
-                          <option>Luxembourg</option>
-                          <option>Pays-Bas</option>
+                          <option value="Belgique">{t('checkout.country_be', 'Belgique')}</option>
+                          <option value="France">{t('checkout.country_fr', 'France')}</option>
+                          <option value="Luxembourg">{t('checkout.country_lu', 'Luxembourg')}</option>
+                          <option value="Pays-Bas">{t('checkout.country_nl', 'Pays-Bas')}</option>
                         </select>
                       </label>
                     </section>
@@ -305,22 +319,22 @@ export default function CheckoutPage() {
                       type="submit" 
                       className="luxury-button w-full py-6 flex items-center justify-center gap-4 group"
                     >
-                      <span className="text-[11px] uppercase tracking-[0.3em]">Continuer vers le paiement</span>
+                      <span className="text-[11px] uppercase tracking-[0.3em]">{t('checkout.continue_pay', 'Continuer vers le paiement')}</span>
                       <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </button>
 
                     <div className="flex items-center justify-center gap-8 pt-8 border-t border-gray-50">
                       <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest text-gray-400">
                         <ShieldCheck size={12} />
-                        <span>Paiement Sécurisé</span>
+                        <span>{t('checkout.secure_badge', 'Paiement sécurisé')}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest text-gray-400">
                         <Truck size={12} />
-                        <span>Livraison Offerte</span>
+                        <span>{t('checkout.free_ship_badge', 'Livraison offerte')}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest text-gray-400">
                         <Lock size={12} />
-                        <span>Données Cryptées</span>
+                        <span>{t('checkout.data_encrypted', 'Données cryptées')}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -338,11 +352,11 @@ export default function CheckoutPage() {
                       className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-brand-black transition-colors mb-8"
                     >
                       <ArrowLeft size={12} />
-                      Retour aux informations
+                      {t('checkout.back_info', 'Retour aux informations')}
                     </button>
 
                     <section>
-                      <h2 className="text-2xl font-serif mb-8 border-b border-gray-100 pb-4">Paiement</h2>
+                      <h2 className="text-2xl font-serif mb-8 border-b border-gray-100 pb-4">{t('checkout.payment', 'Paiement')}</h2>
                       <div className="space-y-6">
                         <div className="relative overflow-hidden rounded-2xl border border-brand-black/10 bg-white p-8 shadow-sm">
                           <div className="absolute right-0 top-0 p-4">
@@ -354,14 +368,15 @@ export default function CheckoutPage() {
                                 <CreditCard size={20} strokeWidth={1.5} className="text-brand-gold" />
                               </div>
                               <span className="text-xs font-medium uppercase tracking-widest">
-                                Carte bancaire (Stripe Checkout)
+                                {t('checkout.card_stripe', 'Carte bancaire (Stripe Checkout)')}
                               </span>
                             </div>
                           </div>
                           <p className="text-[11px] leading-relaxed text-brand-black/60">
-                            Vous serez redirigé vers une page de paiement sécurisée Stripe pour régler{' '}
-                            <span className="font-medium text-brand-black">{formatPrice(total)}</span>. Aucun paiement
-                            n&apos;est encaissé sur ce site.
+                            {t('checkout.stripe_redirect', 'Vous serez redirigé vers une page de paiement sécurisée Stripe pour régler {amount}. Aucun paiement n\'est encaissé sur ce site.').replace(
+                              '{amount}',
+                              formatPrice(total)
+                            )}
                           </p>
                         </div>
 
@@ -369,10 +384,10 @@ export default function CheckoutPage() {
                           <ShieldCheck size={20} className="text-emerald-600" />
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">
-                              Paiement 100 % sécurisé
+                              {t('checkout.ssl_note', 'Paiement 100 % sécurisé')}
                             </p>
                             <p className="text-[9px] uppercase tracking-widest text-emerald-700/70">
-                              Cryptage SSL — conformité PCI via Stripe
+                              {t('checkout.pci_note', 'Cryptage SSL — conformité PCI via Stripe')}
                             </p>
                           </div>
                         </div>
@@ -387,15 +402,18 @@ export default function CheckoutPage() {
                         onChange={(e) => setAcceptCGV(e.target.checked)}
                       />
                       <span className="text-left text-[11px] leading-relaxed text-brand-black/70">
-                        Je confirme avoir pris connaissance des{' '}
+                        {t('checkout.cgv_confirm_1', 'Je confirme avoir pris connaissance des')}{' '}
                         <Link href="/cgv" className="border-b border-brand-gold/40 text-brand-black hover:text-brand-gold">
-                          conditions générales de vente
+                          {t('checkout.cgv_link', 'conditions générales de vente')}
                         </Link>
-                        , de la{' '}
+                        {t('checkout.cgv_confirm_2', ', de la ')}{' '}
                         <Link href="/confidentialite" className="border-b border-brand-gold/40 text-brand-black hover:text-brand-gold">
-                          politique de confidentialité
-                        </Link>{' '}
-                        et j&apos;accepte le traitement de mes données aux fins de la commande.
+                          {t('checkout.privacy_link', 'politique de confidentialité')}
+                        </Link>
+                        {t(
+                          'checkout.cgv_confirm_3',
+                          " et j'accepte le traitement de mes données aux fins de la commande."
+                        )}
                       </span>
                     </label>
 
@@ -407,7 +425,7 @@ export default function CheckoutPage() {
                       {loading ? (
                         <div className="flex items-center gap-3">
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span className="text-[11px] uppercase tracking-[0.3em]">Validation...</span>
+                          <span className="text-[11px] uppercase tracking-[0.3em]">{t('checkout.validating', 'Validation…')}</span>
                         </div>
                       ) : (
                         <span className="text-[11px] uppercase tracking-[0.3em]">{t('checkout.confirm_pay', 'Confirmer et Payer')} {formatPrice(total)}</span>
@@ -458,7 +476,7 @@ export default function CheckoutPage() {
                   <span className="text-emerald-600 font-bold">{t('checkout.free', 'Offerte')}</span>
                 </div>
                 <div className="flex justify-between items-baseline pt-6 mt-4 border-t border-gray-100">
-                  <span className="text-sm font-serif uppercase tracking-widest">Total</span>
+                  <span className="text-sm font-serif uppercase tracking-widest">{t('common.total', 'Total')}</span>
                   <span className="text-2xl font-serif">{formatPrice(total)}</span>
                 </div>
               </div>
@@ -468,13 +486,17 @@ export default function CheckoutPage() {
                   <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
                     <Truck size={14} strokeWidth={1.5} />
                   </div>
-                  <span className="text-[9px] uppercase tracking-widest">Livraison en 2-4 jours ouvrés</span>
+                  <span className="text-[9px] uppercase tracking-widest">
+                    {t('checkout.delivery_eta', 'Livraison en 2-4 jours ouvrés')}
+                  </span>
                 </div>
                 <div className="flex items-center gap-4 text-gray-400">
                   <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
                     <ShieldCheck size={14} strokeWidth={1.5} />
                   </div>
-                  <span className="text-[9px] uppercase tracking-widest">Garantie satisfaction 30 jours</span>
+                  <span className="text-[9px] uppercase tracking-widest">
+                    {t('checkout.satisfaction', 'Garantie satisfaction 30 jours')}
+                  </span>
                 </div>
               </div>
             </div>

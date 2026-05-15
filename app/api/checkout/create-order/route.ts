@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { tryGetSupabaseAdmin } from '@/lib/supabase-admin';
+import { clientIp, rateLimit } from '@/lib/rate-limit';
 import type { CartItem } from '@/store/useCart';
+import fr from '@/locales/fr.json';
+import it from '@/locales/it.json';
 
 export const runtime = 'nodejs';
 
@@ -19,6 +22,16 @@ function isUUID(str: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 }
 
+type ClientLocale = 'fr' | 'it';
+
+function tOrder(loc: ClientLocale, key: string): string {
+  const tab = loc === 'it' ? it : fr;
+  const v = tab[key as keyof typeof tab];
+  if (typeof v === 'string') return v;
+  const f = fr[key as keyof typeof fr];
+  return typeof f === 'string' ? f : key;
+}
+
 function prepareOrderItems(orderId: string, items: CartItem[], useForeignKeys: boolean) {
   return items.map((item) => ({
     order_id: orderId,
@@ -31,13 +44,28 @@ function prepareOrderItems(orderId: string, items: CartItem[], useForeignKeys: b
 }
 
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  const rl = rateLimit(`checkout:${ip}`, 12, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'rate_limited' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+    );
+  }
+
   const admin = tryGetSupabaseAdmin();
   if (!admin) {
+    let locale: ClientLocale = 'fr';
+    try {
+      const peek = (await request.clone().json()) as { locale?: string };
+      if (peek?.locale === 'it') locale = 'it';
+    } catch {
+      /* ignore */
+    }
     return NextResponse.json(
       {
         error: 'server_misconfigured',
-        message:
-          'Enregistrement commande impossible : définissez NEXT_PUBLIC_SUPABASE_URL (projet réel) et SUPABASE_SERVICE_ROLE_KEY sur le serveur (ex. Vercel → Environment Variables).',
+        message: tOrder(locale, 'checkout.api.server_misconfigured'),
       },
       { status: 503 }
     );
@@ -48,12 +76,15 @@ export async function POST(request: Request) {
     total?: number;
     shipping?: ShippingBody;
     userId?: string | null;
+    locale?: string;
   };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
+
+  const locale: ClientLocale = body.locale === 'it' ? 'it' : 'fr';
 
   const items = body.items;
   if (!Array.isArray(items) || items.length === 0) {
@@ -64,7 +95,7 @@ export async function POST(request: Request) {
   const total = Number(body.total);
   if (!Number.isFinite(total) || total < 0.5 || Math.abs(total - expected) > 0.02) {
     return NextResponse.json(
-      { error: 'total_mismatch', message: 'Le total ne correspond pas au panier.' },
+      { error: 'total_mismatch', message: tOrder(locale, 'checkout.api.total_mismatch') },
       { status: 400 }
     );
   }
@@ -92,6 +123,7 @@ export async function POST(request: Request) {
     postalCode: s.postalCode.trim(),
     country: s.country?.trim() || 'Belgique',
     payment_method: 'stripe' as const,
+    locale,
   };
 
   let userId = body.userId && isUUID(body.userId) ? body.userId : null;
@@ -130,7 +162,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: 'order_insert_failed',
-        message: orderError.message || 'Insertion commande refusée.',
+        message: orderError.message || tOrder(locale, 'checkout.api.order_insert_failed'),
         code: orderError.code,
       },
       { status: 400 }

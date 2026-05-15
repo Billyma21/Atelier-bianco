@@ -16,7 +16,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   useEffect(() => {
     const searchProducts = async () => {
@@ -25,12 +25,20 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
         return;
       }
       setLoading(true);
-      
-      const { data, error } = await supabase
+
+      const safe = query.replace(/[%_,]/g, ' ').trim();
+      if (safe.length < 2) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
         .from('products')
         .select('*, product_images(*), product_variants(*)')
-        .or(`name.ilike.%${query}%,name_it.ilike.%${query}%,family.ilike.%${query}%`)
-        .limit(5);
+        .eq('status', 'active')
+        .or(`name.ilike.%${safe}%,name_it.ilike.%${safe}%,family.ilike.%${safe}%`)
+        .limit(8);
 
       if (data) setResults(data);
       setLoading(false);
@@ -48,7 +56,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex flex-col items-center pt-[10vh] px-6">
+        <div className="fixed inset-0 z-[200] flex flex-col items-center px-4 pt-[max(5rem,10vh)] sm:px-6">
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
@@ -61,19 +69,21 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="w-full max-w-2xl relative z-[210]"
           >
-            <div className="relative group mb-12">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-gold/40 group-focus-within:text-brand-gold transition-colors" size={24} />
+            <div className="relative group mb-8 sm:mb-12">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gold/40 transition-colors group-focus-within:text-brand-gold sm:left-6" size={22} />
               <input 
                 autoFocus
                 type="text"
-                placeholder="Chercher une fragrance, une note..."
+                placeholder={t('search.placeholder', 'Chercher une fragrance, une note...')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-brand-cream/5 border-none text-brand-cream text-3xl font-serif italic py-8 pl-20 pr-8 focus:ring-0 placeholder:text-brand-cream/10"
+                className="w-full border-none bg-brand-cream/5 py-5 pl-14 pr-12 font-serif text-xl italic text-brand-cream placeholder:text-brand-cream/10 focus:ring-0 sm:py-8 sm:pl-20 sm:pr-8 sm:text-3xl"
               />
               <button 
+                type="button"
                 onClick={onClose}
-                className="absolute right-6 top-1/2 -translate-y-1/2 text-brand-cream/20 hover:text-brand-cream transition-colors"
+                className="touch-target absolute right-2 top-1/2 -translate-y-1/2 text-brand-cream/20 transition-colors hover:text-brand-cream sm:right-6"
+                aria-label={t('search.close_aria', 'Fermer la recherche')}
               >
                 <X size={24} />
               </button>
@@ -123,13 +133,17 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
               {query.length >= 2 && results.length === 0 && !loading && (
                 <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/5">
                   <Package className="mx-auto text-brand-cream/10 mb-4" size={48} />
-                  <p className="text-brand-cream/40 font-serif italic text-xl">Aucun résultat trouvé pour &quot;{query}&quot;</p>
+                  <p className="text-brand-cream/40 font-serif italic text-xl">
+                    {t('search.no_results', 'Aucun résultat trouvé pour « {q} »').replace('{q}', query)}
+                  </p>
                 </div>
               )}
 
               {query.length < 2 && (
                 <div className="py-20 text-center">
-                  <p className="text-[11px] uppercase tracking-[0.5em] text-brand-cream/20">Entrez au moins 2 caractères</p>
+                  <p className="text-[11px] uppercase tracking-[0.5em] text-brand-cream/20">
+                    {t('search.min_chars', 'Entrez au moins 2 caractères')}
+                  </p>
                 </div>
               )}
             </div>

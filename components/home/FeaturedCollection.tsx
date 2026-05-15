@@ -6,13 +6,16 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { FEATURED_COLLECTION_DESC_FR } from '@/lib/brand-copy';
+import { collectionMarketingBody, productDisplayName } from '@/lib/i18n/db-locale';
 
 export type FeaturedCollectionData = {
   name: string;
   name_it?: string | null;
+  name_en?: string | null;
   slug: string;
   description?: string | null;
+  description_it?: string | null;
+  description_en?: string | null;
   image_url: string;
 };
 
@@ -22,14 +25,17 @@ type Props = {
 
 export default function FeaturedCollection({ collection }: Props) {
   const { t, language } = useLanguage();
-  const title =
-    language === 'it' && collection.name_it?.trim()
-      ? collection.name_it
-      : collection.name;
+  const title = productDisplayName(language, {
+    name: collection.name,
+    name_it: collection.name_it ?? undefined,
+    name_en: collection.name_en ?? undefined,
+  });
   const href = `/parfums?collection=${encodeURIComponent(collection.slug)}`;
 
+  const desc = collectionMarketingBody(language, collection).trim();
+
   return (
-    <section className="py-24 md:py-32 px-6 md:px-12 bg-brand-cream">
+    <section className="bg-brand-cream px-4 py-16 sm:px-6 sm:py-24 md:py-32 lg:px-12">
       <div className="max-w-screen-2xl mx-auto">
         <div className="text-center mb-12 md:mb-16">
           <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-6 block">
@@ -65,15 +71,12 @@ export default function FeaturedCollection({ collection }: Props) {
             </Link>
 
             <div className="flex flex-col justify-center px-8 py-12 md:px-14 md:py-16 text-brand-cream">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold/90 mb-4">
-                Atelier Bianco — Extrait de Parfum
-              </p>
+              <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold/90 mb-4">{t('home.featured_eyebrow')}</p>
               <h3 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] leading-tight mb-6 tracking-wide">
                 {title}
               </h3>
               <p className="font-sans text-sm md:text-base leading-relaxed text-brand-cream/80 max-w-md mb-10">
-                {collection.description?.trim() ||
-                  t('home.featured_collection_fallback_desc', FEATURED_COLLECTION_DESC_FR)}
+                {desc || t('home.featured_collection_fallback_desc')}
               </p>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                 <Link
@@ -88,13 +91,13 @@ export default function FeaturedCollection({ collection }: Props) {
                     href="/produits/why"
                     className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-brand-cream/70 border-b border-brand-cream/25 pb-1 hover:text-brand-gold hover:border-brand-gold transition-colors"
                   >
-                    WHY — fiche produit
+                    {t('home.featured_link_why')}
                   </Link>
                   <Link
                     href="/produits/masamvne"
                     className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-brand-cream/70 border-b border-brand-cream/25 pb-1 hover:text-brand-gold hover:border-brand-gold transition-colors"
                   >
-                    MASAMVNE — fiche produit
+                    {t('home.featured_link_masamvne')}
                   </Link>
                 </div>
               </div>

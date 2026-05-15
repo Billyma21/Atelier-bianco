@@ -8,15 +8,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { normalizeProductSlug } from '@/lib/product-slug';
+import { productDisplayFamily, productDisplayName } from '@/lib/i18n/db-locale';
 
 interface ProductCardProps {
   product: {
     id: string;
     name: string;
     name_it?: string;
+    name_en?: string;
     slug: string;
     family: string;
     family_it?: string;
+    family_en?: string;
     price: number;
     image: string;
     isNew?: boolean;
@@ -37,8 +40,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     product.image || primaryImg?.url || 'https://picsum.photos/seed/perfume/800/1000';
   const price = product.price || product.product_variants?.[0]?.price || 0;
 
-  const displayName = language === 'it' && product.name_it ? product.name_it : product.name;
-  const displayFamily = language === 'it' && product.family_it ? product.family_it : product.family;
+  const displayName = productDisplayName(language, product);
+  const displayFamily =
+    productDisplayFamily(language, product).trim() || product.family || t('product.family_default');
 
   const slugSafe = normalizeProductSlug(product.slug || '');
   const href = slugSafe ? `/produits/${slugSafe}` : '/parfums';

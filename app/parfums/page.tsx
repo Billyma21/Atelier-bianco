@@ -12,10 +12,15 @@ import { normalizeProductSlug } from '@/lib/product-slug';
 import { SlidersHorizontal, X } from 'lucide-react';
 import {
   MASAMVNE_DESCRIPTION_FR,
+  MASAMVNE_DESCRIPTION_IT,
   MASAMVNE_SHORT_DESC_FR,
+  MASAMVNE_SHORT_DESC_IT,
   WHY_DESCRIPTION_FR,
+  WHY_DESCRIPTION_IT,
   WHY_SHORT_DESC_FR,
+  WHY_SHORT_DESC_IT,
 } from '@/lib/brand-copy';
+import { productDisplayName } from '@/lib/i18n/db-locale';
 
 export type CatalogCollection = {
   id: string;
@@ -85,12 +90,14 @@ function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
       name_it: 'WHY',
       slug: 'why',
       family: 'Extrait de Parfum',
-      family_it: 'Extrait de Parfum',
+      family_it: 'Estratto di profumo',
       price: 219,
       image: '/images/why-packshot-hero.png',
       status: 'active',
       short_desc: WHY_SHORT_DESC_FR,
+      short_desc_it: WHY_SHORT_DESC_IT,
       description: WHY_DESCRIPTION_FR,
+      description_it: WHY_DESCRIPTION_IT,
       product_images: [{ url: '/images/why-packshot-hero.png', is_primary: true }],
       product_variants: [
         { price: 219, size_ml: 50 },
@@ -104,12 +111,14 @@ function getMockCatalogProducts(collectionId: string = MOCK_COLLECTION_ID) {
       name_it: 'MASAMVNE',
       slug: 'masamvne',
       family: 'Extrait de Parfum',
-      family_it: 'Extrait de Parfum',
+      family_it: 'Estratto di profumo',
       price: 209,
       image: '/images/masamvne-packshot.png',
       status: 'active',
       short_desc: MASAMVNE_SHORT_DESC_FR,
+      short_desc_it: MASAMVNE_SHORT_DESC_IT,
       description: MASAMVNE_DESCRIPTION_FR,
+      description_it: MASAMVNE_DESCRIPTION_IT,
       product_images: [{ url: '/images/masamvne-packshot.png', is_primary: true }],
       product_variants: [
         { price: 209, size_ml: 50 },
@@ -142,7 +151,7 @@ export default function CataloguePage() {
   const { t, language } = useLanguage();
 
   const collectionLabel = (c: CatalogCollection) =>
-    language === 'it' && c.name_it?.trim() ? c.name_it : c.name;
+    productDisplayName(language, { name: c.name, name_it: c.name_it ?? undefined });
 
   const activeCollectionSlug = useMemo(() => {
     if (activeCollectionId === 'all') return null;
@@ -264,19 +273,19 @@ export default function CataloguePage() {
       <Header />
       
       {/* Hero Catalogue */}
-      <section className="pt-40 pb-20 px-6 md:px-12 border-b border-brand-black/5">
-        <div className="max-w-screen-2xl mx-auto">
+      <section className="page-content border-b border-brand-black/5 pb-12 sm:pb-16 lg:pb-20">
+        <div className="mx-auto max-w-screen-2xl">
           <motion.span 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
-            className="text-[10px] uppercase tracking-[0.3em] text-brand-gold mb-4 block"
+            className="mb-4 block text-[10px] uppercase tracking-[0.3em] text-brand-gold"
           >
             {t('catalog.label', 'La Collection Complète')}
           </motion.span>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-serif italic mb-8"
+            className="heading-page mb-6 italic sm:mb-8"
           >
             {t('catalog.title', 'Nos Créations')}
           </motion.h1>
@@ -323,8 +332,8 @@ export default function CataloguePage() {
       </section>
 
       {/* Product Grid */}
-      <section className="py-20 px-6 md:px-12">
-        <div className="max-w-screen-2xl mx-auto">
+      <section className="px-4 py-12 sm:px-6 sm:py-16 lg:px-12 lg:py-20">
+        <div className="mx-auto max-w-screen-2xl">
           {fetchError && (
             <div className="mb-10 rounded-2xl border border-red-100 bg-red-50/80 px-6 py-5 text-sm text-red-900">
               <p className="font-serif font-medium">
@@ -426,37 +435,49 @@ export default function CataloguePage() {
               className="fixed top-0 right-0 h-full w-full max-w-md bg-brand-cream z-[80] p-12 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-12">
-                <h2 className="text-2xl font-serif">Filtres</h2>
-                <button onClick={() => setShowFilters(false)} className="hover:rotate-90 transition-transform duration-500">
+                <h2 className="text-2xl font-serif">{t('catalog.filter_drawer_title')}</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(false)}
+                  className="hover:rotate-90 transition-transform duration-500"
+                  aria-label={t('catalog.filters_close_aria')}
+                >
                   <X size={24} />
                 </button>
               </div>
               
               <div className="space-y-12">
                 <div>
-                  <h3 className="text-[10px] uppercase tracking-widest mb-6 text-brand-gold">Prix</h3>
+                  <h3 className="text-[10px] uppercase tracking-widest mb-6 text-brand-gold">{t('catalog.filter_price')}</h3>
                   <input type="range" className="w-full accent-brand-gold" />
                   <div className="flex justify-between mt-2 text-[10px] uppercase font-sans opacity-40">
-                    <span>0€</span>
-                    <span>500€</span>
+                    <span>0 €</span>
+                    <span>500 €</span>
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-[10px] uppercase tracking-widest mb-6 text-brand-gold">Intensité</h3>
+                  <h3 className="text-[10px] uppercase tracking-widest mb-6 text-brand-gold">{t('catalog.filter_intensity')}</h3>
                   <div className="space-y-4">
-                    {['Léger', 'Modéré', 'Intense', 'Extrait'].map((level) => (
-                      <label key={level} className="flex items-center gap-3 cursor-pointer group">
+                    {(
+                      [
+                        'catalog.intensity_light',
+                        'catalog.intensity_moderate',
+                        'catalog.intensity_strong',
+                        'catalog.intensity_extrakt',
+                      ] as const
+                    ).map((levelKey) => (
+                      <label key={levelKey} className="flex items-center gap-3 cursor-pointer group">
                         <div className="w-4 h-4 border border-brand-black/20 group-hover:border-brand-gold transition-colors" />
-                        <span className="text-xs uppercase tracking-widest">{level}</span>
+                        <span className="text-xs uppercase tracking-widest">{t(levelKey)}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               </div>
               
-              <button className="luxury-button w-full py-5 absolute bottom-12 left-0 px-12">
-                Appliquer les filtres
+              <button type="button" className="luxury-button w-full py-5 absolute bottom-12 left-0 px-12">
+                {t('catalog.apply_filters')}
               </button>
             </motion.div>
           </>

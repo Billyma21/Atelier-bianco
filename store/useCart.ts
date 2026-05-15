@@ -61,6 +61,25 @@ export const useCart = create<CartStore>()(
     }),
     {
       name: 'atelier-bianco-cart',
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as { items?: CartItem[] };
+        if (version < 2 && state?.items) {
+          state.items = state.items.filter(
+            (i) => i?.variantId && Number(i.quantity) > 0 && Number(i.price) >= 0
+          );
+        }
+        return { items: state?.items ?? [] };
+      },
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const clean = state.items.filter(
+          (i) => i?.variantId && Number(i.quantity) > 0 && Number.isFinite(Number(i.price))
+        );
+        if (clean.length !== state.items.length) {
+          state.items = clean;
+        }
+      },
     }
   )
 );

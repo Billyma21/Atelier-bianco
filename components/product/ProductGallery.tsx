@@ -3,32 +3,39 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProductGalleryProps {
   images: string[];
+  productName?: string;
 }
 
 const MotionImage = motion(Image);
 
-export default function ProductGallery({ images }: ProductGalleryProps) {
+export default function ProductGallery({ images, productName }: ProductGalleryProps) {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
+  const safe = images.length > 0 ? images : ['/images/why-packshot-hero.png'];
+  const idx = Math.min(activeIndex, Math.max(0, safe.length - 1));
+  const baseAlt = productName?.trim() || t('product.gallery_main_alt');
 
   return (
     <div className="flex flex-col-reverse md:flex-row gap-6">
       {/* Thumbnails */}
       <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto no-scrollbar">
-        {images.map((img, i) => (
+        {safe.map((img, i) => (
           <button
             key={i}
+            type="button"
             onClick={() => setActiveIndex(i)}
             className={`relative flex-shrink-0 w-20 h-24 overflow-hidden border transition-all duration-300 ${
-              activeIndex === i ? 'border-brand-gold' : 'border-transparent opacity-60 hover:opacity-100'
+              idx === i ? 'border-brand-gold' : 'border-transparent opacity-60 hover:opacity-100'
             }`}
           >
-            <Image 
-              src={img} 
-              alt={`View ${i + 1}`} 
-              fill 
+            <Image
+              src={img}
+              alt={t('product.gallery_thumb_alt').replace('{n}', String(i + 1))}
+              fill
               sizes="80px"
               className="object-cover"
               referrerPolicy="no-referrer"
@@ -41,9 +48,9 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
       <div className="relative flex-1 aspect-[3/4] overflow-hidden bg-brand-black/5 group">
         <AnimatePresence mode="wait">
           <MotionImage
-            key={activeIndex}
-            src={images[activeIndex]}
-            alt="Product main view"
+            key={idx}
+            src={safe[idx]}
+            alt={baseAlt}
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 55vw"
@@ -55,10 +62,9 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             referrerPolicy="no-referrer"
           />
         </AnimatePresence>
-        
-        {/* Zoom Hint */}
-        <div className="absolute bottom-6 right-6 bg-brand-cream/80 backdrop-blur-sm px-4 py-2 text-[8px] uppercase tracking-widest font-sans opacity-0 group-hover:opacity-100 transition-opacity">
-          Survolez pour zoomer
+
+        <div className="absolute bottom-6 right-6 bg-brand-cream/80 backdrop-blur-sm px-4 py-2 text-[8px] uppercase tracking-widest font-sans opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          {t('product.gallery_zoom_hint')}
         </div>
       </div>
     </div>

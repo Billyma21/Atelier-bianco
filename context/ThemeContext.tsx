@@ -22,6 +22,8 @@ interface ThemeSettings {
     logo_url: string;
     show_announcement: boolean;
     announcement_text: string;
+    /** Optionnel : bandeau italien (sinon repli sur `home.promo_banner` si FR seul). */
+    announcement_text_it?: string;
   };
 }
 

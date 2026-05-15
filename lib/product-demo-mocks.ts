@@ -1,8 +1,12 @@
 import {
   MASAMVNE_DESCRIPTION_FR,
+  MASAMVNE_DESCRIPTION_IT,
   MASAMVNE_SHORT_DESC_FR,
+  MASAMVNE_SHORT_DESC_IT,
   WHY_DESCRIPTION_FR,
+  WHY_DESCRIPTION_IT,
   WHY_SHORT_DESC_FR,
+  WHY_SHORT_DESC_IT,
 } from '@/lib/brand-copy';
 
 /** Données de démo uniquement si aucun produit en base (slugs connus). */
@@ -29,7 +33,7 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
           is_primary: true,
         },
       ],
-      product_variants: [{ id: 'mock-v1', size_ml: 50, price: 125, stock: 10 }],
+      product_variants: [{ id: 'mock-v1', size_ml: 50, price: 125, stock: 0 }],
     },
     'bois-ebene': {
       id: 'mock-p2',
@@ -43,7 +47,7 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
           is_primary: true,
         },
       ],
-      product_variants: [{ id: 'mock-v2', size_ml: 100, price: 210, stock: 15 }],
+      product_variants: [{ id: 'mock-v2', size_ml: 100, price: 210, stock: 0 }],
     },
     why: {
       id: 'demo-why',
@@ -51,32 +55,39 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
       name_it: 'WHY',
       slug: 'why',
       family: 'Extrait de Parfum',
-      family_it: 'Extrait de Parfum',
+      family_it: 'Estratto di profumo',
       short_desc: WHY_SHORT_DESC_FR,
       description: WHY_DESCRIPTION_FR,
+      description_it: WHY_DESCRIPTION_IT,
+      short_desc_it: WHY_SHORT_DESC_IT,
       long_description:
         'Fabriqué en Italie. Pyramide : caramel, safran, pêche, fruits rouges ; cœur poivre rose, gingembre, ciste ; fond boisé, vanille, musc, benjoin.',
       story:
         'WHY est une fragrance construite autour de l’inexplicable — une signature élégante, mystérieuse et addictive.',
+      story_it:
+        'WHY è una fragranza costruita sull’inspiegabile — una firma elegante, misteriosa e avvincente.',
       product_images: [
         { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
         { url: '/images/why-lifestyle-2.png', is_primary: false, type: 'lifestyle' },
         { url: '/images/why-gallery-01.png', is_primary: false, type: 'lifestyle' },
       ],
       product_variants: [
-        { id: 'demo-why-50', size_ml: 50, price: 219, stock: 20, sku: 'AB-WHY-50' },
-        { id: 'demo-why-100', size_ml: 100, price: 319, stock: 12, sku: 'AB-WHY-100' },
+        { id: 'demo-why-50', size_ml: 50, price: 219, stock: 0, sku: 'AB-WHY-50' },
+        { id: 'demo-why-100', size_ml: 100, price: 319, stock: 0, sku: 'AB-WHY-100' },
       ],
       olfactory_notes: [
-        { type: 'head', name: 'Caramel', image_url: '' },
-        { type: 'heart', name: 'Poivre rose', image_url: '' },
-        { type: 'base', name: 'Benjoin', image_url: '' },
+        { type: 'head', name: 'Caramel', name_it: 'Caramello', image_url: '' },
+        { type: 'heart', name: 'Poivre rose', name_it: 'Pepe rosa', image_url: '' },
+        { type: 'base', name: 'Benjoin', name_it: 'Benzoino', image_url: '' },
       ],
       ingredients:
         'Alcohol Denat., Parfum (Fragrance), Aqua (Water), Limonene, Linalool, Benzyl Salicylate, Coumarin, Citronellol, Geraniol, Eugenol, Citral, Benzyl Alcohol, Farnesol.',
       olfactory_profile_title_fr: '¿? — Une présence, pas une réponse',
+      olfactory_profile_title_it: '¿? — Una presenza, non una risposta',
       olfactory_profile_description_fr:
         'Tête : caramel, safran, pêche, fruits rouges. Cœur : poivre rose, gingembre, ciste. Fond : notes boisées, vanille, musc, benjoin.',
+      olfactory_profile_description_it:
+        'Testa: caramello, zafferano, pesca, frutti rossi. Cuore: pepe rosa, zenzero, cisto. Fondo: note legnose, vaniglia, muschio, benzoino.',
       status: 'active',
       is_new: true,
     },
@@ -86,29 +97,36 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
       name_it: 'MASAMVNE',
       slug: 'masamvne',
       family: 'Extrait de Parfum',
-      family_it: 'Extrait de Parfum',
+      family_it: 'Estratto di profumo',
       short_desc: MASAMVNE_SHORT_DESC_FR,
       description: MASAMVNE_DESCRIPTION_FR,
+      description_it: MASAMVNE_DESCRIPTION_IT,
+      short_desc_it: MASAMVNE_SHORT_DESC_IT,
       long_description:
         'Fabriqué en Italie. Pyramide : framboise, noix de coco ; cœur caramel, sucre roux, vanille ; fond rose, musc.',
       story:
         'Une lame silencieuse — précise, puissante, maîtrisée. Une signature tranchante qui captive et attire les compliments.',
+      story_it:
+        'Una lama silenziosa — precisa, potente, controllata. Una firma netta che cattura e attira i complimenti.',
       product_images: [
         { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
         { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },
       ],
       product_variants: [
-        { id: 'demo-ms-50', size_ml: 50, price: 209, stock: 15, sku: 'AB-MASAMVNE-50' },
-        { id: 'demo-ms-100', size_ml: 100, price: 299, stock: 10, sku: 'AB-MASAMVNE-100' },
+        { id: 'demo-ms-50', size_ml: 50, price: 209, stock: 0, sku: 'AB-MASAMVNE-50' },
+        { id: 'demo-ms-100', size_ml: 100, price: 299, stock: 0, sku: 'AB-MASAMVNE-100' },
       ],
       olfactory_notes: [
-        { type: 'head', name: 'Framboise', image_url: '' },
-        { type: 'heart', name: 'Caramel', image_url: '' },
-        { type: 'base', name: 'Rose', image_url: '' },
+        { type: 'head', name: 'Framboise', name_it: 'Lampone', image_url: '' },
+        { type: 'heart', name: 'Caramel', name_it: 'Caramello', image_url: '' },
+        { type: 'base', name: 'Rose', name_it: 'Rosa', image_url: '' },
       ],
       olfactory_profile_title_fr: 'La ligne et la matière',
+      olfactory_profile_title_it: 'La linea e la materia',
       olfactory_profile_description_fr:
         'Tête : framboise, noix de coco. Cœur : caramel, sucre roux, vanille. Fond : rose, musc.',
+      olfactory_profile_description_it:
+        'Testa: lampone, cocco. Cuore: caramello, zucchero di canna, vaniglia. Fondo: rosa, muschio.',
       status: 'active',
       is_new: true,
     },

@@ -7,18 +7,25 @@ import { motion } from 'motion/react';
 import ProductCard from '@/components/product/ProductCard';
 import { formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
-import { HOME_DUAL_SUBTITLE_FR, WHY_SHORT_DESC_FR } from '@/lib/brand-copy';
+import { HOME_DUAL_SUBTITLE_FR } from '@/lib/brand-copy';
 import { normalizeProductSlug } from '@/lib/product-slug';
+import { productCardBlurb, productDisplayFamily, productDisplayName } from '@/lib/i18n/db-locale';
 
 type ProductShape = {
   id: string;
   name: string;
   name_it?: string;
+  name_en?: string;
   slug?: string;
   family?: string;
   family_it?: string;
+  family_en?: string;
   description?: string;
+  description_it?: string;
   short_desc?: string;
+  short_desc_it?: string;
+  short_desc_en?: string;
+  description_en?: string;
   isNew?: boolean;
   product_images?: { url: string; is_primary?: boolean; type?: string }[];
   product_variants?: { price: number; size_ml?: number; is_active?: boolean }[];
@@ -67,9 +74,9 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
   /** Deux extraits : mise en page premium côte à côte */
   if (products.length === 2) {
     return (
-      <section className="relative overflow-hidden bg-white py-24 md:py-32">
+      <section className="relative overflow-hidden bg-white py-16 sm:py-24 md:py-32">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(201,169,110,0.06),_transparent_50%)]" />
-        <div className="max-w-screen-xl mx-auto px-6 md:px-12">
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-12">
           <div className="mb-14 text-center md:mb-16">
             <span className="mb-4 block text-[10px] uppercase tracking-[0.45em] text-brand-gold">
               {t('home.dual_eyebrow', 'Alter Egos')}
@@ -90,18 +97,14 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
 
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-12 xl:gap-16">
             {products.map((p, idx) => {
-              const displayName = language === 'it' && p.name_it?.trim() ? p.name_it : p.name;
+              const displayName = productDisplayName(language, p);
               const displayFamily =
-                language === 'it' && p.family_it?.trim() ? p.family_it : p.family || 'Extrait de Parfum';
+                productDisplayFamily(language, p).trim() || t('product.family_default');
               const img = primaryImage(p);
               const { min, max } = priceRange(p);
               const slug = normalizeProductSlug(p.slug || '');
               const href = slug ? `/produits/${slug}` : '/parfums';
-              const rawDesc =
-                (typeof p.short_desc === 'string' && p.short_desc.trim()) ||
-                (typeof p.description === 'string' && p.description.trim()) ||
-                '';
-              const blurb = rawDesc.length > 300 ? `${rawDesc.slice(0, 297)}…` : rawDesc;
+              const blurb = productCardBlurb(language, p, 300);
 
               return (
                 <motion.article
@@ -166,28 +169,22 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
   }
 
   if (flagship) {
-    const displayName =
-      language === 'it' && flagship.name_it?.trim() ? flagship.name_it : flagship.name;
+    const displayName = productDisplayName(language, flagship);
     const displayFamily =
-      language === 'it' && flagship.family_it?.trim()
-        ? flagship.family_it
-        : flagship.family || 'Extrait de Parfum';
+      productDisplayFamily(language, flagship).trim() || t('product.family_default');
     const img = primaryImage(flagship);
     const { min, max } = priceRange(flagship);
     const slug = normalizeProductSlug(flagship.slug || '');
     const href = slug ? `/produits/${slug}` : '/parfums';
+    const blurbDb = productCardBlurb(language, flagship, 900);
     const blurb =
-      (typeof flagship.short_desc === 'string' && flagship.short_desc.trim()) ||
-      (typeof flagship.description === 'string' && flagship.description.trim()) ||
-      t(
-        'home.flagship_why_blurb',
-        WHY_SHORT_DESC_FR
-      );
+      blurbDb.trim() ||
+      t('home.flagship_why_blurb', 'La sélection phare sera bientôt détaillée ici.');
 
     return (
-      <section className="relative overflow-hidden bg-white py-24 md:py-32">
+      <section className="relative overflow-hidden bg-white py-16 sm:py-24 md:py-32">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(201,169,110,0.08),_transparent_55%)]" />
-        <div className="max-w-screen-xl mx-auto px-6 md:px-12">
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-12">
           <div className="mb-14 text-center md:mb-16">
             <span className="mb-4 block text-[10px] uppercase tracking-[0.45em] text-brand-gold">
               {t('home.flagship_eyebrow', "L'Élégance intemporelle")}
@@ -261,7 +258,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
 
   return (
     <section className="py-32 bg-white">
-      <div className="max-w-screen-2xl mx-auto px-6 md:px-12">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-12">
         <div className="mb-16 flex flex-col items-end gap-8 md:flex-row md:justify-between">
           <div>
             <span className="mb-6 block text-[10px] uppercase tracking-[0.4em] text-brand-gold">

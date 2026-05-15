@@ -34,7 +34,7 @@ export default function OlfactoryProfile({
   pyramidImage,
   notes,
 }: OlfactoryProfileProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const pyramidSrc = pyramidImage?.url || diagramUrl;
 
   const NoteBubble = ({ note }: { note: { name: string; image_url?: string } }) => (
@@ -160,7 +160,7 @@ export default function OlfactoryProfile({
                 alt={
                   pyramidImage?.alt ||
                   pyramidImage?.caption ||
-                  (language === 'it' ? 'Diagramma olfattivo' : 'Schéma du profil olfactif')
+                  t('olfactory.diagram_alt')
                 }
                 fill
                 className="object-cover"

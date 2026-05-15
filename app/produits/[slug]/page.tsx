@@ -40,6 +40,14 @@ import { formatPrice, cn } from '@/lib/utils';
 import { mapVisualsByKind } from '@/lib/olfactory-visuals';
 import { useCart } from '@/store/useCart';
 import { useLanguage } from '@/context/LanguageContext';
+import { localizedText } from '@/lib/i18n/localized-text';
+import {
+  dbVisualAlt,
+  dbVisualCaption,
+  productDisplayFamily,
+  productDisplayName,
+  productPrimaryBody,
+} from '@/lib/i18n/db-locale';
 import { normalizeProductSlug } from '@/lib/product-slug';
 import { getDemoProduct } from '@/lib/product-demo-mocks';
 import { ReportProductMissing } from '@/components/product/ReportProductMissing';
@@ -50,7 +58,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [product, setProduct] = useState<any>(null);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('profile olfactif');
+  const [activeTab, setActiveTab] = useState<'profile' | 'reviews'>('profile');
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -194,7 +202,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       setReviewSuccess(true);
       setReviewForm({ rating: 5, comment: '', name: user.user_metadata?.full_name || user.email?.split('@')[0] || '' });
     } else {
-      useToast.getState().show('Erreur lors du dépôt de l\'avis : ' + error.message, 'error');
+      useToast.getState().show(t('product.toast_review_error', '') + error.message, 'error');
     }
     setSubmittingReview(false);
   };
@@ -283,12 +291,29 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const variants = product.product_variants || [];
   const isOutOfStock = selectedVariant && selectedVariant.stock <= 0;
 
-  // I18n Product Data
-  const displayName = language === 'it' && product.name_it ? product.name_it : product.name;
-  const displayFamily = language === 'it' && product.family_it ? product.family_it : product.family;
-  const displayDescription = language === 'it' && product.description_it ? product.description_it : product.description;
-  const displayProfileTitle = language === 'it' && product.olfactory_profile_title_it ? product.olfactory_profile_title_it : product.olfactory_profile_title_fr;
-  const displayProfileDesc = language === 'it' && product.olfactory_profile_description_it ? product.olfactory_profile_description_it : product.olfactory_profile_description_fr;
+  // I18n Product Data (jamais de repli français lorsque langue = italien)
+  const displayName = productDisplayName(language, product);
+  const displayFamilyRaw = productDisplayFamily(language, product);
+  const displayFamily = displayFamilyRaw.trim() ? displayFamilyRaw : t('product.family_default');
+  const displayDescription = productPrimaryBody(language, product);
+  const displayProfileTitle = localizedText(
+    language,
+    product.olfactory_profile_title_fr,
+    product.olfactory_profile_title_it
+  );
+  const displayProfileDesc = localizedText(
+    language,
+    product.olfactory_profile_description_fr,
+    product.olfactory_profile_description_it
+  );
+
+  const mapOlfactoryNotes = (rows: { name: string; name_it?: string | null; image_url?: string }[]) =>
+    rows
+      .map((n) => ({
+        name: localizedText(language, n.name, n.name_it).trim(),
+        image_url: n.image_url,
+      }))
+      .filter((n) => n.name.length > 0);
 
   const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5;
 
@@ -296,10 +321,10 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     <main className="min-h-screen bg-brand-cream">
       <Header />
 
-      <div className="pt-32 pb-20 px-6 md:px-12 max-w-screen-2xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+      <div className="page-content mx-auto max-w-screen-2xl pb-24 lg:pb-20">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-7">
-            <ProductGallery images={product.product_images?.map((img: any) => img.url) || []} />
+            <ProductGallery images={product.product_images?.map((img: any) => img.url) || []} productName={displayName} />
           </div>
 
           <div className="lg:col-span-5 flex flex-col">
@@ -314,7 +339,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 </div>
               </div>
               
-              <h1 className="text-4xl md:text-5xl font-serif mb-6">{displayName}</h1>
+              <h1 className="heading-page mb-4 sm:mb-6">{displayName}</h1>
               
               <div className="flex items-center gap-4 mb-8">
                 <div className="flex text-brand-gold">
@@ -325,9 +350,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 </span>
               </div>
 
-              <p className="text-brand-black/70 font-sans text-base leading-relaxed mb-10">
-                {displayDescription}
-              </p>
+              {displayDescription.trim() ? (
+                <p className="text-brand-black/70 font-sans text-base leading-relaxed mb-10">{displayDescription}</p>
+              ) : null}
 
               {/* Size Selector */}
               <div className="mb-10">
@@ -350,7 +375,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
               <div className="flex items-end justify-between mb-10">
                 <div>
-                  <span className="text-[10px] uppercase tracking-widest text-brand-black/40 block mb-1 font-bold">Prix</span>
+                  <span className="text-[10px] uppercase tracking-widest text-brand-black/40 block mb-1 font-bold">{t('product.price_label')}</span>
                   <span className="text-3xl font-serif">{selectedVariant ? formatPrice(selectedVariant.price) : '—'}</span>
                 </div>
                 <div className="text-right">
@@ -378,22 +403,29 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     <form onSubmit={handleNotifyMe} className="flex gap-2">
                       <input type="email" required placeholder={t('form.email', 'VOTRE EMAIL')} value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 bg-white border border-brand-black/10 px-4 py-3 text-[10px] uppercase tracking-widest focus:outline-none focus:border-brand-gold transition-all" />
                       <button type="submit" disabled={submitting} className="bg-brand-black text-brand-cream px-6 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-gold transition-all disabled:opacity-50">
-                        {submitting ? '...' : t('form.notify_me', 'PRÉVENEZ-MOI')}
+                        {submitting ? '...' : t('product.notify_me', 'Prévenez-moi')}
                       </button>
                     </form>
                   )}
                 </div>
               ) : (
-                <button onClick={handleAddToCart} className="luxury-button w-full py-5 text-sm mb-10">
-                  {t('product.add_to_cart', 'Ajouter au Panier')}
-                </button>
+                <>
+                  <button onClick={handleAddToCart} className="luxury-button mb-10 hidden w-full py-5 text-sm lg:block">
+                    {t('product.add_to_cart', 'Ajouter au Panier')}
+                  </button>
+                  <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-brand-black/10 bg-brand-cream/95 p-4 backdrop-blur-md lg:hidden pb-[max(1rem,env(safe-area-inset-bottom))]">
+                    <button onClick={handleAddToCart} className="luxury-button w-full py-4 text-sm">
+                      {t('product.add_to_cart', 'Ajouter au Panier')}
+                    </button>
+                  </div>
+                </>
               )}
 
-              <div className="grid grid-cols-3 gap-4 py-8 border-y border-brand-black/5">
+              <div className="grid grid-cols-1 gap-4 border-y border-brand-black/5 py-8 sm:grid-cols-3">
                 {[
-                  { icon: Truck, text: 'Livraison Offerte' },
-                  { icon: RefreshCw, text: 'Retours 30 Jours' },
-                  { icon: ShieldCheck, text: 'Paiement Sécurisé' }
+                  { icon: Truck, text: t('product.free_delivery', 'Livraison offerte') },
+                  { icon: RefreshCw, text: t('product.returns', 'Retours 30 jours') },
+                  { icon: ShieldCheck, text: t('product.secure_payment', 'Paiement sécurisé') },
                 ].map((b, i) => (
                   <div key={i} className="flex flex-col items-center text-center gap-2">
                     <b.icon size={20} strokeWidth={1} className="text-brand-gold" />
@@ -407,22 +439,28 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
         <div className="mt-32">
           <div className="flex border-b border-brand-black/5 mb-16 overflow-x-auto no-scrollbar justify-center">
-            {['profile olfactif', 'avis clients'].map((tab) => (
+            {(
+              [
+                { id: 'profile' as const, labelKey: 'product.tab.profile_olfactif' },
+                { id: 'reviews' as const, labelKey: 'product.tab.avis_clients' },
+              ] as const
+            ).map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-sans transition-all whitespace-nowrap font-bold",
-                  activeTab === tab ? 'text-brand-gold border-b border-brand-gold' : 'text-brand-black/40 hover:text-brand-black'
+                  'px-8 py-6 text-[10px] uppercase tracking-[0.2em] font-sans transition-all whitespace-nowrap font-bold',
+                  activeTab === tab.id ? 'text-brand-gold border-b border-brand-gold' : 'text-brand-black/40 hover:text-brand-black'
                 )}
               >
-                {t(`product.tab.${tab.replace(/ /g, '_')}`, tab)}
+                {t(tab.labelKey)}
               </button>
             ))}
           </div>
 
           <div className="max-w-5xl mx-auto">
-            {activeTab === 'profile olfactif' && (
+            {activeTab === 'profile' && (
               <OlfactoryProfile
                 diagramUrl={product.olfactory_diagram_url}
                 title={displayProfileTitle}
@@ -431,8 +469,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                   storyVisual?.image_url
                     ? {
                         url: storyVisual.image_url,
-                        caption: language === 'it' ? storyVisual.caption_it : storyVisual.caption_fr,
-                        alt: language === 'it' ? storyVisual.alt_it : storyVisual.alt_fr,
+                        caption: dbVisualCaption(language, storyVisual),
+                        alt: dbVisualAlt(language, storyVisual),
                       }
                     : undefined
                 }
@@ -440,20 +478,20 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                   pyramidImageUrl
                     ? {
                         url: pyramidImageUrl,
-                        caption: language === 'it' ? pyramidVisual?.caption_it : pyramidVisual?.caption_fr,
-                        alt: language === 'it' ? pyramidVisual?.alt_it : pyramidVisual?.alt_fr,
+                        caption: dbVisualCaption(language, pyramidVisual ?? {}),
+                        alt: dbVisualAlt(language, pyramidVisual ?? {}),
                       }
                     : undefined
                 }
                 notes={{
-                  head: product.olfactory_notes?.filter((n: any) => n.type === 'head') || [],
-                  heart: product.olfactory_notes?.filter((n: any) => n.type === 'heart') || [],
-                  base: product.olfactory_notes?.filter((n: any) => n.type === 'base') || [],
+                  head: mapOlfactoryNotes(product.olfactory_notes?.filter((n: any) => n.type === 'head') || []),
+                  heart: mapOlfactoryNotes(product.olfactory_notes?.filter((n: any) => n.type === 'heart') || []),
+                  base: mapOlfactoryNotes(product.olfactory_notes?.filter((n: any) => n.type === 'base') || []),
                 }}
               />
             )}
 
-            {activeTab === 'avis clients' && (
+            {activeTab === 'reviews' && (
                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                     {/* Review Form */}
@@ -478,8 +516,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                       ) : reviewSuccess ? (
                         <div className="bg-green-50 text-green-600 p-8 rounded-3xl text-sm font-medium border border-green-100 flex flex-col items-center text-center gap-4">
                            <CheckCircle2 size={32} />
-                           <p>{t('review.success', 'Merci ! Votre avis a été envoyé pour modération et sera publié très prochainement.')}</p>
-                           <button onClick={() => setReviewSuccess(false)} className="text-[10px] uppercase tracking-widest font-black underline underline-offset-4">Écrire un autre avis</button>
+                           <p>{t('review.success_detail', 'Merci ! Votre avis a été envoyé pour modération et sera publié très prochainement.')}</p>
+                           <button type="button" onClick={() => setReviewSuccess(false)} className="text-[10px] uppercase tracking-widest font-black underline underline-offset-4">{t('review.write_another')}</button>
                         </div>
                       ) : (
                         <form onSubmit={handleReviewSubmit} className="space-y-6">
@@ -511,9 +549,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
                     {/* Review List */}
                     <div className="lg:col-span-7 space-y-8">
-                       <h3 className="text-2xl font-serif">{reviews.length} {t('review.count', 'Témoignages')}</h3>
+                       <h3 className="text-2xl font-serif">{`${reviews.length}`} {t('review.count_suffix')}</h3>
                        {loadingReviews ? (
-                         <div className="text-center py-20 italic text-gray-400">Chargement des avis...</div>
+                         <div className="text-center py-20 italic text-gray-400">{t('review.loading', '')}</div>
                        ) : reviews.length === 0 ? (
                          <div className="text-center py-20 bg-white rounded-[40px] border border-dashed border-gray-200">
                            <MessageSquare size={32} className="text-gray-100 mx-auto mb-4" />

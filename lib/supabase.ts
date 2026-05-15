@@ -1,3 +1,4 @@
+import { createBrowserClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 /** Ne jamais utiliser la clé service_role côté navigateur : uniquement NEXT_PUBLIC_SUPABASE_* pour le client public. */
@@ -55,31 +56,21 @@ const getSupabaseAnonKey = () => {
   return DEV_PLACEHOLDER_ANON;
 };
 
-let supabaseInstance: any = null;
+let supabaseInstance: ReturnType<typeof createBrowserClient> | null = null;
 
-// Use standard createClient for maximum compatibility in iframes (localStorage based)
+/** Client navigateur : session en cookies (compatible middleware admin). Serveur : instance éphémère. */
 export const createClient = () => {
   const url = getSupabaseUrl();
   const key = getSupabaseAnonKey();
 
-  // On server, always create a new instance to avoid auth state leakage between requests
   if (typeof window === 'undefined') {
     return createSupabaseClient(url, key, {
-      auth: { persistSession: false }
+      auth: { persistSession: false },
     });
   }
 
-  // On client, use singleton to prevent "Multiple GoTrueClient instances" warnings
   if (supabaseInstance) return supabaseInstance;
-  
-  supabaseInstance = createSupabaseClient(url, key, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: 'atelier-bianco-auth-token',
-    }
-  });
 
+  supabaseInstance = createBrowserClient(url, key);
   return supabaseInstance;
 };
