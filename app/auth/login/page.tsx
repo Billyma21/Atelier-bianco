@@ -11,6 +11,7 @@ import {
   isOauthProviderDisabledError,
   OAUTH_GOOGLE_DISABLED_MESSAGE,
 } from '@/lib/auth-oauth';
+import GoogleOAuthSetupLinks from '@/components/auth/GoogleOAuthSetupLinks';
 
 const SHOW_GOOGLE =
   typeof process.env.NEXT_PUBLIC_HIDE_GOOGLE_OAUTH === 'undefined' ||
@@ -20,8 +21,8 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [oauthSetupHelp, setOauthSetupHelp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,45 +34,23 @@ function LoginForm() {
     if (oauth && reason) {
       try {
         const decoded = decodeURIComponent(reason.replace(/\+/g, ' '));
+        const disabled = isOauthProviderDisabledError(decoded);
+        setOauthSetupHelp(disabled || searchParams.get('hint') === 'google_disabled');
         setError(
-          isOauthProviderDisabledError(decoded)
-            ? t('auth.oauth_disabled_long', OAUTH_GOOGLE_DISABLED_MESSAGE)
-            : decoded
+          disabled ? t('auth.oauth_disabled_long', OAUTH_GOOGLE_DISABLED_MESSAGE) : decoded
         );
       } catch {
         setError(reason);
+        setOauthSetupHelp(false);
       }
     }
   }, [searchParams, t]);
-
-  const handleGoogleLogin = async () => {
-    setError(null);
-    setGoogleLoading(true);
-    try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (oauthError) {
-        setError(
-          isOauthProviderDisabledError(oauthError.message)
-            ? t('auth.oauth_disabled_long', OAUTH_GOOGLE_DISABLED_MESSAGE)
-            : oauthError.message
-        );
-        setGoogleLoading(false);
-      }
-    } catch {
-      setError(t('auth.google_start_error', "Impossible de démarrer la connexion Google. Réessayez ou utilisez l'email."));
-      setGoogleLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setOauthSetupHelp(false);
 
     const { data, error: signError } = await supabase.auth.signInWithPassword({
       email,
@@ -102,7 +81,10 @@ function LoginForm() {
           <h1 className="mb-8 text-center font-serif text-2xl sm:text-3xl">{t('auth.login_title', '')}</h1>
 
           {error && (
-            <div className="mb-6 border border-red-100 bg-red-50 p-4 text-xs leading-relaxed text-red-600">{error}</div>
+            <div className="mb-6 border border-red-100 bg-red-50 p-4 text-xs leading-relaxed text-red-600">
+              {error}
+              {oauthSetupHelp ? <GoogleOAuthSetupLinks /> : null}
+            </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -147,11 +129,10 @@ function LoginForm() {
                 <div className="h-px flex-1 bg-brand-black/10" />
               </div>
 
-              <button
-                type="button"
-                disabled={googleLoading}
-                onClick={handleGoogleLogin}
-                className="mt-6 flex w-full items-center justify-center gap-3 border border-brand-black/10 py-4 text-xs uppercase tracking-widest transition-all hover:bg-brand-black/5 disabled:opacity-60"
+              <Link
+                href="/api/auth/google"
+                prefetch={false}
+                className="mt-6 flex w-full items-center justify-center gap-3 border border-brand-black/10 py-4 text-xs uppercase tracking-widest transition-all hover:bg-brand-black/5"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                   <path
@@ -171,10 +152,8 @@ function LoginForm() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {googleLoading ? t('auth.redirecting', '') : t('auth.signin_google', '')}
-              </button>
-
-              <p className="mt-4 text-center text-[10px] leading-relaxed text-brand-black/45">{t('auth.supabase_google_hint', '')}</p>
+                {t('auth.signin_google', '')}
+              </Link>
             </>
           )}
           {!SHOW_GOOGLE && (
