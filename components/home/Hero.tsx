@@ -97,11 +97,11 @@ export default function Hero({ content }: { content?: Record<string, unknown> | 
           initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ duration: 1.5, ease: 'easeOut' }}
-          className="relative flex aspect-[4/5] max-h-[55vh] items-center justify-center sm:aspect-square sm:max-h-none md:aspect-auto md:h-[85vh] md:max-h-none"
+          className="relative flex aspect-[4/5] max-h-[55vh] items-center justify-center overflow-hidden sm:aspect-square sm:max-h-none md:aspect-auto md:h-[85vh] md:max-h-none"
         >
           <div className="animate-pulse-slow absolute inset-0 scale-110 rounded-full bg-brand-gold/15 blur-[160px]" />
 
-          <div className="relative flex h-full w-full max-w-sm items-center justify-center md:max-w-none">
+          <div className="relative flex h-full w-full max-w-sm items-center justify-center overflow-hidden md:max-w-none">
             <motion.div
               animate={{ y: [0, -30, 0], opacity: [0.3, 0.6, 0.3] }}
               transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
