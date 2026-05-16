@@ -7,6 +7,8 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { collectionMarketingBody, productDisplayName } from '@/lib/i18n/db-locale';
+import { ALTER_EGOS_COLLECTION_IMAGE } from '@/lib/home-marketing-images';
+import { cn } from '@/lib/utils';
 
 export type FeaturedCollectionData = {
   name: string;
@@ -33,6 +35,9 @@ export default function FeaturedCollection({ collection }: Props) {
   const href = `/parfums?collection=${encodeURIComponent(collection.slug)}`;
 
   const desc = collectionMarketingBody(language, collection).trim();
+  const isAlterEgosVisual =
+    collection.image_url.includes('alter-egos-duo') ||
+    collection.image_url === ALTER_EGOS_COLLECTION_IMAGE;
 
   return (
     <section className="bg-brand-cream px-4 py-16 sm:px-6 sm:py-24 md:py-32 lg:px-12">
@@ -62,7 +67,10 @@ export default function FeaturedCollection({ collection }: Props) {
                 src={collection.image_url}
                 alt={title}
                 fill
-                className="object-cover object-center transition-transform duration-[1.2s] ease-out will-change-transform group-hover:scale-[1.02]"
+                className={cn(
+                  'object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.02]',
+                  isAlterEgosVisual ? 'object-[center_42%]' : 'object-center'
+                )}
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 priority
                 unoptimized={collection.image_url.startsWith('/')}

@@ -5,14 +5,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { DEFAULT_HERO_PRODUCT_IMAGE } from '@/lib/hero-content';
+import { DEFAULT_HERO_PRODUCT_IMAGE, resolveHeroProductImage } from '@/lib/hero-content';
 
 export default function Hero({ content }: { content?: Record<string, unknown> | null }) {
   const { t, language } = useLanguage();
-  const heroImageSrc =
+  const heroImageSrc = resolveHeroProductImage(
     (typeof content?.hero_product_image === 'string' && content.hero_product_image.trim()) ||
-    (typeof content?.hero_image === 'string' && content.hero_image.trim()) ||
-    DEFAULT_HERO_PRODUCT_IMAGE;
+      DEFAULT_HERO_PRODUCT_IMAGE
+  );
 
   return (
     <section className="relative flex min-h-[100dvh] w-full items-center overflow-hidden bg-brand-cream pt-20 sm:pt-24 md:min-h-screen md:pt-0">
@@ -101,37 +101,45 @@ export default function Hero({ content }: { content?: Record<string, unknown> | 
         >
           <div className="animate-pulse-slow absolute inset-0 scale-110 rounded-full bg-brand-gold/15 blur-[160px]" />
 
-          <div className="relative flex h-full w-full max-w-sm items-center justify-center overflow-hidden md:max-w-none">
+          <motion.div className="relative flex h-full w-full items-center justify-center px-3 py-6 sm:px-5 sm:py-8 md:px-6 md:py-10">
             <motion.div
               animate={{ y: [0, -30, 0], opacity: [0.3, 0.6, 0.3] }}
               transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
-              className="absolute top-1/4 -right-10 h-24 w-24 rounded-full bg-brand-gold/20 blur-3xl"
+              className="pointer-events-none absolute top-1/4 -right-10 h-24 w-24 rounded-full bg-brand-gold/20 blur-3xl"
             />
             <motion.div
               animate={{ y: [0, 50, 0], opacity: [0.2, 0.5, 0.2] }}
               transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut', delay: 2 }}
-              className="absolute bottom-1/4 -left-20 h-32 w-32 rounded-full bg-brand-gold/30 blur-3xl"
+              className="pointer-events-none absolute bottom-1/4 -left-20 h-32 w-32 rounded-full bg-brand-gold/30 blur-3xl"
             />
 
-            <Image
-              src={heroImageSrc}
-              alt={
-                language === 'it'
-                  ? typeof content?.hero_image_alt_it === 'string' && content.hero_image_alt_it.trim()
-                    ? content.hero_image_alt_it
-                    : t('hero.image_alt_default')
-                  : typeof content?.hero_image_alt === 'string' && content.hero_image_alt.trim()
-                    ? content.hero_image_alt
-                    : t('hero.image_alt_default')
-              }
-              width={900}
-              height={1200}
-              priority
-              className="max-h-full w-auto object-contain drop-shadow-[0_50px_80px_-20px_rgba(0,0,0,0.4)] transition-transform duration-1000 ease-out hover:scale-[1.02]"
-              referrerPolicy="no-referrer"
-              unoptimized={heroImageSrc.startsWith('/')}
-            />
-          </div>
+            <motion.div
+              className="group relative aspect-[4/5] w-full max-w-[17.5rem] overflow-hidden rounded-[1.25rem] border border-brand-black/[0.06] bg-brand-cream/80 shadow-[0_32px_64px_-24px_rgba(0,0,0,0.18)] sm:max-w-xs md:max-w-sm lg:max-w-md"
+              whileHover={{ scale: 1.015 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            >
+              <div className="relative h-full w-full p-3 sm:p-4">
+                <Image
+                  src={heroImageSrc}
+                  alt={
+                    language === 'it'
+                      ? typeof content?.hero_image_alt_it === 'string' && content.hero_image_alt_it.trim()
+                        ? content.hero_image_alt_it
+                        : t('hero.image_alt_default')
+                      : typeof content?.hero_image_alt === 'string' && content.hero_image_alt.trim()
+                        ? content.hero_image_alt
+                        : t('hero.image_alt_default')
+                  }
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 72vw, 28vw"
+                  className="object-contain object-center"
+                  referrerPolicy="no-referrer"
+                  unoptimized={heroImageSrc.startsWith('/')}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

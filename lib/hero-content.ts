@@ -13,11 +13,19 @@ export type HeroBadge = {
 /** Par défaut : aucune pastille flottante (évite le doublon « Concentration / Extrait » sur le packshot). */
 export const DEFAULT_HERO_BADGES: HeroBadge[] = [];
 
-/** Packshot studio (hero colonne droite par défaut). */
-export const DEFAULT_HERO_PRODUCT_IMAGE = '/images/hero-why-studio.png';
+import {
+  HERO_HOME_PRODUCT_IMAGE,
+  WHY_LIFESTYLE_HAND_IMAGE,
+  resolveHeroProductImage,
+} from '@/lib/home-marketing-images';
 
-/** Visuel lifestyle / storytelling — stocké en base (`home_content.hero_image`). */
-export const DEFAULT_HERO_SECONDARY_IMAGE = '/images/hero-why-lifestyle.png';
+export { resolveHeroProductImage };
+
+/** Duo WHY + MASAMVNE — colonne droite du hero. */
+export const DEFAULT_HERO_PRODUCT_IMAGE = HERO_HOME_PRODUCT_IMAGE;
+
+/** WHY en main — section storytelling (`home_content.hero_image`). */
+export const DEFAULT_HERO_SECONDARY_IMAGE = WHY_LIFESTYLE_HAND_IMAGE;
 
 /** Pastille « Concentration » : sous-texte toujours « Extrait » (écrase l’ancien « L'Extrait Rare » venant de Supabase). */
 function migrateLegacyBadgeCopy(b: HeroBadge): HeroBadge {

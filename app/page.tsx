@@ -14,6 +14,11 @@ import { createClient } from '@/lib/supabase';
 import { useLanguage } from '@/context/LanguageContext';
 import { DEFAULT_HERO_SECONDARY_IMAGE } from '@/lib/hero-content';
 import {
+  ALTER_EGOS_COLLECTION_IMAGE,
+  resolveAlterEgosCollectionImage,
+  resolveStoryImage,
+} from '@/lib/home-marketing-images';
+import {
   filterRetailProducts,
   isRetailReadyProduct,
   pickStorefrontCollections,
@@ -25,7 +30,7 @@ const FALLBACK_FEATURED_COLLECTION = {
   name: 'Alter Egos',
   name_it: 'Alter Egos',
   slug: 'alter-egos',
-  image_url: '/images/why-packshot-hero.png',
+  image_url: ALTER_EGOS_COLLECTION_IMAGE,
 };
 
 export default function HomePage() {
@@ -124,13 +129,14 @@ export default function HomePage() {
     return {
       ...FALLBACK_FEATURED_COLLECTION,
       ...row,
-      image_url: row.image_url || FALLBACK_FEATURED_COLLECTION.image_url,
+      image_url: resolveAlterEgosCollectionImage(row.image_url || FALLBACK_FEATURED_COLLECTION.image_url),
     };
   }, [activeCollections]);
 
-  const storyImageSrc =
+  const storyImageSrc = resolveStoryImage(
     (typeof homeContent?.hero_image === 'string' && homeContent.hero_image.trim()) ||
-    DEFAULT_HERO_SECONDARY_IMAGE;
+      DEFAULT_HERO_SECONDARY_IMAGE
+  );
 
   return (
     <main className="min-h-screen">
@@ -190,7 +196,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
-            className="relative aspect-[4/5] overflow-hidden rounded-sm bg-brand-black/5"
+            className="relative aspect-[4/5] overflow-hidden bg-brand-black/5"
           >
             <Image
               src={storyImageSrc}
