@@ -190,7 +190,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
-            className="relative aspect-[4/5] overflow-hidden bg-brand-black/5"
+            className="relative aspect-[4/5] overflow-hidden rounded-sm bg-brand-black/5"
           >
             <Image
               src={storyImageSrc}

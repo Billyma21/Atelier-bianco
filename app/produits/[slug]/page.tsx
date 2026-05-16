@@ -48,6 +48,7 @@ import {
   productPrimaryBody,
 } from '@/lib/i18n/db-locale';
 import { normalizeProductSlug } from '@/lib/product-slug';
+import { getSignatureMedia } from '@/lib/signature-product-media';
 import { getDemoProduct } from '@/lib/product-demo-mocks';
 import { ReportProductMissing } from '@/components/product/ReportProductMissing';
 import WishlistButton from '@/components/product/WishlistButton';
@@ -317,6 +318,28 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5;
 
+  const productSlug = normalizeProductSlug(product.slug || '');
+  const galleryImages = (() => {
+    const rows = (product.product_images || []) as {
+      url: string;
+      display_order?: number | null;
+      position?: number | null;
+      is_primary?: boolean;
+    }[];
+    const sorted = [...rows].sort((a, b) => {
+      const ao = a.display_order ?? a.position ?? 99;
+      const bo = b.display_order ?? b.position ?? 99;
+      if (ao !== bo) return ao - bo;
+      if (a.is_primary && !b.is_primary) return -1;
+      if (!a.is_primary && b.is_primary) return 1;
+      return 0;
+    });
+    const urls = sorted.map((r) => r.url).filter((u): u is string => Boolean(u));
+    const signature = getSignatureMedia(productSlug);
+    if (signature && urls.length === 0) return signature.gallery;
+    return urls;
+  })();
+
   return (
     <main className="min-h-screen bg-brand-cream">
       <Header />
@@ -324,7 +347,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       <div className="page-content mx-auto max-w-screen-2xl pb-24 lg:pb-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-7">
-            <ProductGallery images={product.product_images?.map((img: any) => img.url) || []} productName={displayName} />
+            <ProductGallery
+              images={galleryImages}
+              productName={displayName}
+              productSlug={productSlug}
+            />
           </div>
 
           <div className="lg:col-span-5 flex flex-col">

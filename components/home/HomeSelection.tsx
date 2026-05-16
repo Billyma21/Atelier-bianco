@@ -10,6 +10,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import { HOME_DUAL_SUBTITLE_FR } from '@/lib/brand-copy';
 import { normalizeProductSlug } from '@/lib/product-slug';
 import { productCardBlurb, productDisplayFamily, productDisplayName } from '@/lib/i18n/db-locale';
+import { getSignatureMedia } from '@/lib/signature-product-media';
+import { WHY_IMAGE_HERO } from '@/lib/why-media';
+import SignatureShowcaseMedia from '@/components/home/SignatureShowcaseMedia';
 
 type ProductShape = {
   id: string;
@@ -37,7 +40,7 @@ function primaryImage(p: ProductShape): string {
     imgs?.find((x) => x.is_primary) ||
     imgs?.find((x) => x.type === 'packshot') ||
     imgs?.[0];
-  return row?.url || '/images/why-packshot-hero.png';
+  return row?.url || WHY_IMAGE_HERO;
 }
 
 function priceRange(p: ProductShape): { min: number; max: number } {
@@ -105,6 +108,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
               const slug = normalizeProductSlug(p.slug || '');
               const href = slug ? `/produits/${slug}` : '/parfums';
               const blurb = productCardBlurb(language, p, 300);
+              const signatureMedia = getSignatureMedia(slug);
 
               return (
                 <motion.article
@@ -115,21 +119,25 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                   transition={{ duration: 0.75, delay: idx * 0.08 }}
                   className="flex h-full flex-col items-center text-center lg:items-stretch lg:text-left"
                 >
-                  <Link
-                    href={href}
-                    className="group relative mb-8 aspect-[3/4] w-full max-w-[22rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-brand-black/5 shadow-lg sm:max-w-md lg:max-w-none"
-                  >
-                    <Image
-                      src={img}
-                      alt={displayName}
-                      fill
-                      className="object-cover object-center transition-transform duration-[1.1s] ease-out group-hover:scale-[1.02]"
-                      sizes="(max-width: 1024px) 90vw, 42vw"
-                      priority={idx === 0}
-                      unoptimized={img.startsWith('/')}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-brand-black/40 via-transparent to-transparent opacity-90" />
-                  </Link>
+                  {signatureMedia ? (
+                    <SignatureShowcaseMedia href={href} displayName={displayName} media={signatureMedia} />
+                  ) : (
+                    <Link
+                      href={href}
+                      className="group relative mb-8 aspect-[3/4] w-full max-w-[22rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-brand-black/5 shadow-lg sm:max-w-md lg:max-w-none"
+                    >
+                      <Image
+                        src={img}
+                        alt={displayName}
+                        fill
+                        className="object-cover object-center transition-transform duration-[1.1s] ease-out group-hover:scale-[1.02]"
+                        sizes="(max-width: 1024px) 90vw, 42vw"
+                        priority={idx === 0}
+                        unoptimized={img.startsWith('/')}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-black/40 via-transparent to-transparent opacity-90" />
+                    </Link>
+                  )}
                   <div className="flex w-full max-w-[22rem] flex-1 flex-col sm:max-w-md lg:max-w-none">
                   <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.35em] text-brand-gold">{displayFamily}</p>
                   <h3 className="mb-4 font-serif text-2xl text-brand-black md:text-3xl">{displayName}</h3>

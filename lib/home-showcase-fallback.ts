@@ -1,3 +1,5 @@
+import { masamvneProductImageRows } from '@/lib/masamvne-media';
+import { whyProductImageRows } from '@/lib/why-media';
 import {
   MASAMVNE_DESCRIPTION_FR,
   MASAMVNE_DESCRIPTION_IT,
@@ -28,10 +30,7 @@ export function getHomeShowcaseFallbackProducts(): Record<string, unknown>[] {
       description_it: WHY_DESCRIPTION_IT,
       short_desc: WHY_SHORT_DESC_FR,
       short_desc_it: WHY_SHORT_DESC_IT,
-      product_images: [
-        { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
-        { url: '/images/why-pyramid-editorial.png', is_primary: false, type: 'detail' },
-      ],
+      product_images: whyProductImageRows(),
       product_variants: [
         { price: 219, size_ml: 50, is_active: true, stock: 0 },
         { price: 319, size_ml: 100, is_active: true, stock: 0 },
@@ -50,10 +49,7 @@ export function getHomeShowcaseFallbackProducts(): Record<string, unknown>[] {
       description_it: MASAMVNE_DESCRIPTION_IT,
       short_desc: MASAMVNE_SHORT_DESC_FR,
       short_desc_it: MASAMVNE_SHORT_DESC_IT,
-      product_images: [
-        { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
-        { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },
-      ],
+      product_images: masamvneProductImageRows(),
       product_variants: [
         { price: 209, size_ml: 50, is_active: true, stock: 0 },
         { price: 299, size_ml: 100, is_active: true, stock: 0 },

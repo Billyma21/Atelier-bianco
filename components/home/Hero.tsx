@@ -127,7 +127,7 @@ export default function Hero({ content }: { content?: Record<string, unknown> | 
               width={900}
               height={1200}
               priority
-              className="object-contain drop-shadow-[0_50px_80px_-20px_rgba(0,0,0,0.4)] transition-transform duration-1000 ease-out hover:scale-[1.03]"
+              className="max-h-full w-auto object-contain drop-shadow-[0_50px_80px_-20px_rgba(0,0,0,0.4)] transition-transform duration-1000 ease-out hover:scale-[1.02]"
               referrerPolicy="no-referrer"
               unoptimized={heroImageSrc.startsWith('/')}
             />

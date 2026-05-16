@@ -56,13 +56,13 @@ export default function FeaturedCollection({ collection }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] min-h-[420px] lg:min-h-[520px]">
             <Link
               href={href}
-              className="relative block min-h-[320px] lg:min-h-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
+              className="relative block min-h-[320px] overflow-hidden lg:min-h-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
             >
               <Image
                 src={collection.image_url}
                 alt={title}
                 fill
-                className="object-cover object-center transition-transform duration-[1.2s] ease-out group-hover:scale-[1.03]"
+                className="object-cover object-center transition-transform duration-[1.2s] ease-out will-change-transform group-hover:scale-[1.02]"
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 priority
                 unoptimized={collection.image_url.startsWith('/')}

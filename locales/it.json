@@ -77,6 +77,7 @@
   "product.gallery_zoom_hint": "Passa il mouse per ingrandire",
   "product.gallery_thumb_alt": "Anteprima {n}",
   "product.gallery_main_alt": "Immagine principale del prodotto",
+  "product.gallery_video_hint": "Video — riproduzione automatica",
   "product.not_found_title": "Questa creazione non è disponibile",
   "product.not_found_desc": "Il link potrebbe essere incompleto oppure la fragranza non è più in catalogo.",
   "product.out_of_stock_title": "Questo formato non è al momento disponibile",

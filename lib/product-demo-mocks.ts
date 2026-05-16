@@ -1,3 +1,5 @@
+import { masamvneProductImageRows } from '@/lib/masamvne-media';
+import { whyProductImageRows } from '@/lib/why-media';
 import {
   MASAMVNE_DESCRIPTION_FR,
   MASAMVNE_DESCRIPTION_IT,
@@ -66,11 +68,7 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
         'WHY est une fragrance construite autour de l’inexplicable — une signature élégante, mystérieuse et addictive.',
       story_it:
         'WHY è una fragranza costruita sull’inspiegabile — una firma elegante, misteriosa e avvincente.',
-      product_images: [
-        { url: '/images/why-packshot-hero.png', is_primary: true, type: 'packshot' },
-        { url: '/images/why-lifestyle-2.png', is_primary: false, type: 'lifestyle' },
-        { url: '/images/why-gallery-01.png', is_primary: false, type: 'lifestyle' },
-      ],
+      product_images: whyProductImageRows(),
       product_variants: [
         { id: 'demo-why-50', size_ml: 50, price: 219, stock: 0, sku: 'AB-WHY-50' },
         { id: 'demo-why-100', size_ml: 100, price: 319, stock: 0, sku: 'AB-WHY-100' },
@@ -108,10 +106,7 @@ export function getDemoProduct(slug: string): Record<string, unknown> | undefine
         'Une lame silencieuse — précise, puissante, maîtrisée. Une signature tranchante qui captive et attire les compliments.',
       story_it:
         'Una lama silenziosa — precisa, potente, controllata. Una firma netta che cattura e attira i complimenti.',
-      product_images: [
-        { url: '/images/masamvne-packshot.png', is_primary: true, type: 'packshot' },
-        { url: '/images/masamune-lifestyle.png', is_primary: false, type: 'lifestyle' },
-      ],
+      product_images: masamvneProductImageRows(),
       product_variants: [
         { id: 'demo-ms-50', size_ml: 50, price: 209, stock: 0, sku: 'AB-MASAMVNE-50' },
         { id: 'demo-ms-100', size_ml: 100, price: 299, stock: 0, sku: 'AB-MASAMVNE-100' },
