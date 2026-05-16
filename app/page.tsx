@@ -19,6 +19,10 @@ import {
   resolveStoryImage,
 } from '@/lib/home-marketing-images';
 import {
+  showcaseMediaAspectClass,
+  showcaseMediaFrameClass,
+} from '@/lib/showcase-media-styles';
+import {
   filterRetailProducts,
   isRetailReadyProduct,
   pickStorefrontCollections,
@@ -196,7 +200,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
-            className="relative aspect-[4/5] overflow-hidden bg-brand-black/5"
+            className={`group ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} mx-auto max-w-[22rem] sm:max-w-md md:mx-0 md:max-w-none`}
           >
             <Image
               src={storyImageSrc}
@@ -206,7 +210,7 @@ export default function HomePage() {
                   : homeContent?.hero_image_alt?.trim() || t('home.hero_image_alt')
               }
               fill
-              className="object-cover object-center"
+              className="object-cover object-center transition-transform duration-[1.1s] ease-out group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 50vw"
               priority={false}
               unoptimized={storyImageSrc.startsWith('/')}

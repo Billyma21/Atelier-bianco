@@ -2,6 +2,10 @@
 
 import Link from 'next/link';
 import type { SignatureMediaConfig } from '@/lib/signature-product-media';
+import {
+  showcaseMediaAspectClass,
+  showcaseMediaFrameClass,
+} from '@/lib/showcase-media-styles';
 
 type Props = {
   href: string;
@@ -14,7 +18,7 @@ export default function SignatureShowcaseMedia({ href, displayName, media }: Pro
   return (
     <Link
       href={href}
-      className="group relative mb-8 block aspect-[3/4] w-full max-w-[22rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-brand-black shadow-lg sm:max-w-md lg:max-w-none"
+      className={`group mb-8 block ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} max-w-[22rem] shrink-0 bg-brand-black sm:max-w-md lg:max-w-none`}
     >
       <video
         className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[1.1s] ease-out group-hover:scale-[1.02]"

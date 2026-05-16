@@ -13,6 +13,10 @@ import { productCardBlurb, productDisplayFamily, productDisplayName } from '@/li
 import { getSignatureMedia } from '@/lib/signature-product-media';
 import { WHY_IMAGE_HERO } from '@/lib/why-media';
 import SignatureShowcaseMedia from '@/components/home/SignatureShowcaseMedia';
+import {
+  showcaseMediaAspectClass,
+  showcaseMediaFrameClass,
+} from '@/lib/showcase-media-styles';
 
 type ProductShape = {
   id: string;
@@ -124,7 +128,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                   ) : (
                     <Link
                       href={href}
-                      className="group relative mb-8 aspect-[3/4] w-full max-w-[22rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-brand-black/5 shadow-lg sm:max-w-md lg:max-w-none"
+                      className={`group mb-8 ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} max-w-[22rem] shrink-0 sm:max-w-md lg:max-w-none`}
                     >
                       <Image
                         src={img}
