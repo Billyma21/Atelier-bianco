@@ -16,6 +16,7 @@ import SignatureShowcaseMedia from '@/components/home/SignatureShowcaseMedia';
 import {
   showcaseMediaAspectClass,
   showcaseMediaFrameClass,
+  showcaseMediaWidthClass,
 } from '@/lib/showcase-media-styles';
 
 type ProductShape = {
@@ -81,9 +82,9 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
   /** Deux extraits : mise en page premium côte à côte */
   if (products.length === 2) {
     return (
-      <section className="relative overflow-hidden bg-white py-16 sm:py-24 md:py-32">
+      <section className="section-shell section-y relative overflow-hidden bg-white">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(201,169,110,0.06),_transparent_50%)]" />
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-12">
+        <div className="relative mx-auto w-full max-w-screen-xl">
           <div className="mb-14 text-center md:mb-16">
             <span className="mb-4 block text-[10px] uppercase tracking-[0.45em] text-brand-gold">
               {t('home.dual_eyebrow', 'Alter Egos')}
@@ -128,7 +129,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                   ) : (
                     <Link
                       href={href}
-                      className={`group mb-8 ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} max-w-[22rem] shrink-0 sm:max-w-md lg:max-w-none`}
+                      className={`group mb-8 shrink-0 ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} ${showcaseMediaWidthClass}`}
                     >
                       <Image
                         src={img}

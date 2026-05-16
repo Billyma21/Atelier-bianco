@@ -21,6 +21,7 @@ import {
 import {
   showcaseMediaAspectClass,
   showcaseMediaFrameClass,
+  showcaseMediaWidthClass,
 } from '@/lib/showcase-media-styles';
 import {
   filterRetailProducts,
@@ -163,8 +164,8 @@ export default function HomePage() {
       </div>
 
       {/* Storytelling Section */}
-      <section className="mx-auto max-w-screen-2xl px-4 py-20 sm:px-6 sm:py-28 lg:px-12 lg:py-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+      <section className="section-shell section-y">
+        <div className="grid grid-cols-1 items-center gap-12 sm:gap-16 md:grid-cols-2 md:gap-16 lg:gap-20">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -200,7 +201,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
-            className={`group ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} mx-auto max-w-[22rem] sm:max-w-md md:mx-0 md:max-w-none`}
+            className={`group mx-auto md:mx-0 ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} ${showcaseMediaWidthClass}`}
           >
             <Image
               src={storyImageSrc}

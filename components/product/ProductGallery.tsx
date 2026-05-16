@@ -88,7 +88,7 @@ export default function ProductGallery({
   const baseAlt = productName?.trim() || t('product.gallery_main_alt');
 
   return (
-    <div className="flex flex-col-reverse gap-6 md:flex-row">
+    <div className="flex flex-col-reverse gap-4 sm:gap-6 md:flex-row">
       <div className="flex gap-4 overflow-x-auto no-scrollbar md:flex-col">
         {slides.map((slide, i) => (
           <button
@@ -128,7 +128,7 @@ export default function ProductGallery({
         ))}
       </div>
 
-      <div className="group relative aspect-[3/4] flex-1 overflow-hidden bg-brand-black/5">
+      <div className="group relative aspect-[3/4] min-h-[280px] flex-1 overflow-hidden rounded-[1.5rem] bg-brand-black/5 sm:min-h-[360px] md:min-h-0">
         <AnimatePresence mode="wait">
           {active.kind === 'video' ? (
             <motion.video

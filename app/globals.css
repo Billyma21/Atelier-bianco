@@ -111,6 +111,45 @@ body:has([data-announcement='true']) {
   .admin-table-wrap {
     @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
   }
+
+  /* Coquilles de page — padding & largeur cohérents (mobile / tablette / desktop) */
+  .section-shell {
+    @apply mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-12;
+  }
+
+  .section-y {
+    @apply py-14 sm:py-20 md:py-24 lg:py-32;
+  }
+
+  .section-y-tight {
+    @apply py-12 sm:py-16 md:py-20 lg:py-24;
+  }
+
+  /* Hero plein écran : dégagement sous header fixe + annonce */
+  .hero-viewport {
+    min-height: 100dvh;
+    padding-top: calc(
+      var(--site-header-h) + var(--site-announcement-h) + env(safe-area-inset-top, 0px) + 1.75rem
+    );
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .hero-viewport {
+      padding-top: calc(
+        var(--site-header-h) + var(--site-announcement-h) + env(safe-area-inset-top, 0px) + 2.75rem
+      );
+      padding-bottom: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-viewport {
+      padding-top: calc(
+        var(--site-header-h) + var(--site-announcement-h) + env(safe-area-inset-top, 0px) + 3.25rem
+      );
+    }
+  }
 }
 
 .luxury-button {

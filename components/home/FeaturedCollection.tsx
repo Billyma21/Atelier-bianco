@@ -40,8 +40,8 @@ export default function FeaturedCollection({ collection }: Props) {
     collection.image_url === ALTER_EGOS_COLLECTION_IMAGE;
 
   return (
-    <section className="bg-brand-cream px-4 py-16 sm:px-6 sm:py-24 md:py-32 lg:px-12">
-      <div className="max-w-screen-2xl mx-auto">
+    <section className="section-shell section-y bg-brand-cream">
+      <div className="w-full">
         <div className="text-center mb-12 md:mb-16">
           <span className="text-[10px] uppercase tracking-[0.4em] text-brand-gold mb-6 block">
             {t('home.featured_collection_label', 'Collection')}
@@ -58,10 +58,10 @@ export default function FeaturedCollection({ collection }: Props) {
           transition={{ duration: 0.8 }}
           className="relative overflow-hidden rounded-[2rem] border border-brand-black/10 bg-brand-black shadow-2xl"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] min-h-[420px] lg:min-h-[520px]">
+          <div className="grid min-h-0 grid-cols-1 lg:grid-cols-[1.15fr_1fr] lg:min-h-[520px]">
             <Link
               href={href}
-              className="relative block min-h-[320px] overflow-hidden lg:min-h-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
+              className="relative block min-h-[240px] overflow-hidden sm:min-h-[280px] md:min-h-[320px] lg:min-h-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-black"
             >
               <Image
                 src={collection.image_url}
@@ -78,7 +78,7 @@ export default function FeaturedCollection({ collection }: Props) {
               <div className="absolute inset-0 bg-gradient-to-t from-brand-black/70 via-brand-black/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-brand-black/15 lg:to-brand-black/45 pointer-events-none" />
             </Link>
 
-            <div className="flex flex-col justify-center px-8 py-12 md:px-14 md:py-16 text-brand-cream">
+            <div className="flex flex-col justify-center px-6 py-10 text-brand-cream sm:px-8 sm:py-12 md:px-14 md:py-16">
               <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold/90 mb-4">{t('home.featured_eyebrow')}</p>
               <h3 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] leading-tight mb-6 tracking-wide">
                 {title}

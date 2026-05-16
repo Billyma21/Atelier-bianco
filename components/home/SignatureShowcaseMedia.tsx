@@ -5,6 +5,7 @@ import type { SignatureMediaConfig } from '@/lib/signature-product-media';
 import {
   showcaseMediaAspectClass,
   showcaseMediaFrameClass,
+  showcaseMediaWidthClass,
 } from '@/lib/showcase-media-styles';
 
 type Props = {
@@ -18,7 +19,7 @@ export default function SignatureShowcaseMedia({ href, displayName, media }: Pro
   return (
     <Link
       href={href}
-      className={`group mb-8 block ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} max-w-[22rem] shrink-0 bg-brand-black sm:max-w-md lg:max-w-none`}
+      className={`group mb-8 block shrink-0 bg-brand-black ${showcaseMediaFrameClass} ${showcaseMediaAspectClass} ${showcaseMediaWidthClass}`}
     >
       <video
         className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[1.1s] ease-out group-hover:scale-[1.02]"
