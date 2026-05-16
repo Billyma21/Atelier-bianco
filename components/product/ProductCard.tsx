@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Heart } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import WishlistButton from '@/components/product/WishlistButton';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
@@ -84,17 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        <button
-          type="button"
-          className="absolute right-4 top-4 z-[3] text-brand-black/40 transition-colors hover:text-brand-gold"
-          aria-label={t('product.wishlist', 'Liste de souhaits')}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <Heart size={18} strokeWidth={1.5} />
-        </button>
+        <WishlistButton productId={product.id} className="absolute right-4 top-4 z-[3]" />
       </div>
 
       <Link href={href} prefetch className="block text-center">

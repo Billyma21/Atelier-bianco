@@ -177,7 +177,10 @@ export default function HomePage() {
                 ? homeContent?.story_text_it?.trim() || t('home.story_desc')
                 : homeContent?.story_text?.trim() || t('home.story_desc')}
             </p>
-            <Link href="/la-maison" className="text-[10px] uppercase tracking-widest font-sans border-b border-brand-black/20 pb-2 hover:border-brand-gold hover:text-brand-gold transition-all">
+            <Link
+              href="/la-maison"
+              className="luxury-button inline-flex items-center justify-center px-8 py-3.5 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
+            >
               {t('home.story_cta', 'Découvrir notre univers')}
             </Link>
           </motion.div>

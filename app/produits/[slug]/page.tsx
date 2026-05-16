@@ -21,7 +21,6 @@ const OlfactoryProfile = dynamic(() => import('@/components/product/OlfactoryPro
 import Image from 'next/image';
 import { 
   ShoppingBag, 
-  Heart, 
   Truck, 
   RefreshCw, 
   ShieldCheck, 
@@ -51,6 +50,7 @@ import {
 import { normalizeProductSlug } from '@/lib/product-slug';
 import { getDemoProduct } from '@/lib/product-demo-mocks';
 import { ReportProductMissing } from '@/components/product/ReportProductMissing';
+import WishlistButton from '@/components/product/WishlistButton';
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -335,7 +335,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 </span>
                 <div className="flex items-center gap-4">
                   <button className="text-brand-black/40 hover:text-brand-gold transition-colors"><Share2 size={18} strokeWidth={1.5} /></button>
-                  <button className="text-brand-black/40 hover:text-brand-gold transition-colors"><Heart size={18} strokeWidth={1.5} /></button>
+                  {product?.id ? <WishlistButton productId={product.id} /> : null}
                 </div>
               </div>
               

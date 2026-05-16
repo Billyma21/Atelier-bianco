@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import ProductCard from '@/components/product/ProductCard';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 import { HOME_DUAL_SUBTITLE_FR } from '@/lib/brand-copy';
 import { normalizeProductSlug } from '@/lib/product-slug';
@@ -95,7 +95,7 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+          <div className="grid grid-cols-1 gap-12 sm:gap-16 lg:grid-cols-2 lg:items-stretch lg:gap-10 xl:gap-14">
             {products.map((p, idx) => {
               const displayName = productDisplayName(language, p);
               const displayFamily =
@@ -113,11 +113,11 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.75, delay: idx * 0.08 }}
-                  className="flex flex-col items-center text-center lg:items-stretch lg:text-left"
+                  className="flex h-full flex-col items-center text-center lg:items-stretch lg:text-left"
                 >
                   <Link
                     href={href}
-                    className="group relative mx-auto mb-8 aspect-[3/4] w-full max-w-md overflow-hidden rounded-[1.5rem] bg-brand-black/5 shadow-lg lg:mx-0 lg:max-w-none"
+                    className="group relative mb-8 aspect-[3/4] w-full max-w-[22rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-brand-black/5 shadow-lg sm:max-w-md lg:max-w-none"
                   >
                     <Image
                       src={img}
@@ -130,11 +130,17 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-brand-black/40 via-transparent to-transparent opacity-90" />
                   </Link>
+                  <div className="flex w-full max-w-[22rem] flex-1 flex-col sm:max-w-md lg:max-w-none">
                   <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.35em] text-brand-gold">{displayFamily}</p>
                   <h3 className="mb-4 font-serif text-2xl text-brand-black md:text-3xl">{displayName}</h3>
-                  {blurb ? (
-                    <p className="mb-6 line-clamp-5 font-sans text-sm leading-relaxed text-brand-black/65">{blurb}</p>
-                  ) : null}
+                  <p
+                    className={cn(
+                      'mb-6 min-h-[5.5rem] font-sans text-sm leading-relaxed text-brand-black/65',
+                      blurb ? 'line-clamp-4' : 'invisible'
+                    )}
+                  >
+                    {blurb || '—'}
+                  </p>
                   <div className="mb-6 flex flex-col gap-1">
                     <span className="font-sans text-lg text-brand-black">
                       {min > 0 && max > 0
@@ -147,9 +153,13 @@ export default function HomeSelection({ products, collectionSlug = 'alter-egos' 
                       {t('home.flagship_formats', '50 ml & 100 ml · Made in Italy')}
                     </span>
                   </div>
-                  <Link href={href} className="luxury-button inline-flex justify-center px-8 py-3.5 text-center">
+                  <Link
+                    href={href}
+                    className="luxury-button mt-auto inline-flex w-full max-w-xs justify-center self-center px-8 py-3.5 text-center lg:self-start"
+                  >
                     {t('product.discover', 'Découvrir')}
                   </Link>
+                  </div>
                 </motion.article>
               );
             })}

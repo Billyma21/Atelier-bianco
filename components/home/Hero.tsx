@@ -34,7 +34,7 @@ export default function Hero({ content }: { content?: Record<string, unknown> | 
             {t('hero.label', 'Maison de Parfum de Niche')}
           </motion.span>
 
-          <h1 className="mb-8 font-serif text-4xl leading-[0.85] tracking-tighter text-brand-black sm:text-5xl sm:mb-10 md:text-7xl lg:text-8xl xl:text-[9rem]">
+          <h1 className="mb-8 font-serif text-4xl leading-[0.95] tracking-tighter text-brand-black sm:mb-10 sm:text-5xl md:text-7xl md:leading-[0.92] lg:text-8xl xl:text-[7.5rem] xl:leading-[0.9]">
             {content?.hero_title === 'WHY' ? (
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -45,13 +45,19 @@ export default function Hero({ content }: { content?: Record<string, unknown> | 
                 Why
               </motion.span>
             ) : (
-              <span className="mb-4 block">
-                {typeof content?.hero_title === 'string'
-                  ? content.hero_title
-                  : t('hero.title_1', "L'Éveil")}
+              <span className="mb-2 block">
+                {typeof content?.hero_title === 'string' && content.hero_title.trim() ? (
+                  content.hero_title
+                ) : (
+                  <>
+                    {t('hero.title_1', "L'éveil des")}
+                    <br />
+                    <span className="italic">{t('hero.title_2', 'Sens')}</span>
+                  </>
+                )}
               </span>
             )}
-            <span className="mt-4 block font-sans text-sm font-black uppercase leading-snug tracking-[0.15em] opacity-25 sm:mt-6 sm:text-lg md:text-3xl lg:text-4xl">
+            <span className="mt-3 block font-sans text-sm font-black uppercase leading-snug tracking-[0.15em] opacity-25 sm:mt-5 sm:text-lg md:text-2xl lg:text-3xl">
               {language === 'it'
                 ? typeof content?.hero_subtitle_it === 'string' && content.hero_subtitle_it.trim()
                   ? content.hero_subtitle_it

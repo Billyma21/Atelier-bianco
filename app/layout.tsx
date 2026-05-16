@@ -8,6 +8,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import LuxuryLoader from '@/components/layout/LuxuryLoader';
 import ToastHost from '@/components/layout/ToastHost';
 import CookieConsent from '@/components/layout/CookieConsent';
+import WishlistSync from '@/components/layout/WishlistSync';
 import { getSiteUrl } from '@/lib/site-url';
 import { APP_LANGUAGE_COOKIE, parseLangCookie } from '@/lib/i18n/constants';
 import fr from '@/locales/fr.json';
@@ -82,6 +83,7 @@ export default async function RootLayout({
         <LanguageProvider>
           <ThemeProvider>
             <LuxuryLoader>{children}</LuxuryLoader>
+            <WishlistSync />
             <ToastHost />
             <CookieConsent />
           </ThemeProvider>
